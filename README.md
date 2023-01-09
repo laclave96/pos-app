@@ -11,9 +11,10 @@ It is a point of sale application for android devices. It has the following feat
 - Manage of the day's sales
 
 It is a native app developed in Kotlin, with the following technologies:
-- Room Database
+- Room Database and Datastore
 - Retrofit
 - Kotlin Flows and Corroutines
+- LiveData
 - DI with Koin
 - Databinding
 - Navigation Component
