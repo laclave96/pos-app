@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="30dp">
+
+    <ImageView
+        android:id="@+id/close"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_margin="10dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/ripple_8dp"
+        android:padding="3dp"
+        android:src="@drawable/ic_round_close_24"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/gray_125" />
+
+    <ImageView
+        android:id="@+id/payment_icon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="30dp"
+        android:src="@drawable/ic_round_payments_24"
+        app:layout_constraintTop_toBottomOf="@id/close"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Spinner
+        android:id="@+id/payment_method"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nunito_sans_bold"
+        android:textColor="@color/black"
+        android:textSize="22sp"
+        app:layout_constraintStart_toEndOf="@id/payment_icon"
+        app:layout_constraintBottom_toBottomOf="@id/payment_icon"
+        app:layout_constraintTop_toTopOf="@id/payment_icon"
+        />
+
+    <TextView
+        android:id="@+id/to_collect_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:text="@string/collect"
+        android:textColor="@color/black"
+        android:textSize="21sp"
+        app:layout_constraintStart_toStartOf="@id/payment_icon"
+        app:layout_constraintTop_toBottomOf="@id/payment_icon" />
+
+    <TextView
+        android:id="@+id/to_collect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:textSize="20sp"
+        android:text="$0.00"
+        android:textColor="@color/black"
+        app:layout_constraintBottom_toBottomOf="@id/to_collect_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/to_collect_label" />
+
+    <TextView
+        android:id="@+id/change_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:text="@string/change"
+        android:textColor="@color/black"
+        android:textSize="21sp"
+        app:layout_constraintStart_toStartOf="@id/to_collect_label"
+        app:layout_constraintTop_toBottomOf="@id/to_collect_label"
+        />
+
+    <TextView
+        android:id="@+id/change"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:textSize="20sp"
+        android:text="$0.00"
+        app:layout_constraintBottom_toBottomOf="@id/change_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/change_label" />
+
+    <EditText
+        android:id="@+id/collect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:layout_marginEnd="25dp"
+        android:padding="10dp"
+        android:textSize="21sp"
+        android:hint="@string/amount_collected"
+        android:textColor="@color/black"
+        android:inputType="numberDecimal"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:background="@drawable/white_back_20dp"
+        android:backgroundTint="@color/gray_248"
+        android:foreground="@drawable/ripple_8dp"
+        app:layout_constraintStart_toStartOf="@id/change_label"
+        app:layout_constraintTop_toBottomOf="@id/change_label"/>
+
+    <Button
+        android:id="@+id/go_on"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/blue_gradient_15dp"
+        android:fontFamily="@font/nunito_sans_bold"
+        android:padding="10dp"
+        android:text="@string/agree"
+        android:textAllCaps="false"
+        android:textColor="@color/white"
+        android:textSize="21sp"
+       app:layout_constraintEnd_toEndOf="@id/change"
+        app:layout_constraintBottom_toBottomOf="@id/collect"
+        app:layout_constraintTop_toTopOf="@id/collect"/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

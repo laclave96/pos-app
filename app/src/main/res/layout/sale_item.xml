@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="15dp"
+    android:layout_marginTop="5dp"
+    android:layout_marginEnd="15dp"
+    android:layout_marginBottom="5dp"
+    >
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_margin="12dp"
+        android:src="@drawable/ic_round_shopping_cart_24"
+        android:scaleType="fitCenter"
+        android:tint = "@color/gray_125"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/client_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="1dp"
+        android:fontFamily="@font/nunito_sans_bold"
+        android:text="Miguel Angel"
+        android:singleLine ="true"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        app:layout_constraintStart_toEndOf="@id/image"
+        app:layout_constraintEnd_toStartOf="@id/pay_image"
+        android:layout_marginEnd="10dp"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintTop_toTopOf="@id/image" />
+
+
+    <TextView
+        android:id="@+id/products_units"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nunito_sans_regular"
+        android:text="5 articles"
+        android:textColor="@color/primary_blue"
+        android:textSize="19sp"
+        app:layout_constraintTop_toBottomOf="@id/client_name"
+        app:layout_constraintStart_toStartOf="@id/client_name"
+        android:layout_marginTop="1dp"/>
+
+
+    <ImageView
+        android:id="@+id/pay_image"
+        android:layout_width="30dp"
+        android:layout_height="25dp"
+        android:src="@drawable/ic_round_credit_card_24"
+        android:scaleType="fitCenter"
+        android:tint = "@color/black"
+        app:layout_constraintEnd_toStartOf="@id/payment_method"
+        app:layout_constraintTop_toTopOf="@id/payment_method"
+        app:layout_constraintBottom_toBottomOf="@id/payment_method"
+        />
+
+    <TextView
+        android:id="@+id/payment_method"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:text="Credito"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toTopOf="@id/products_units"
+        app:layout_constraintBottom_toBottomOf="@id/products_units"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <View
+        android:id="@+id/div1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="3dp"
+        app:layout_constraintTop_toBottomOf="@id/image"
+        android:background="@color/gray_215_A50"/>
+
+    <TextView
+        android:id="@+id/subtotal_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:text="@string/subtotal"
+        android:textSize="19sp"
+        app:layout_constraintStart_toStartOf="@id/image"
+        app:layout_constraintTop_toBottomOf="@id/div1" />
+
+    <TextView
+        android:id="@+id/subtotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:textSize="19sp"
+        app:layout_constraintBottom_toBottomOf="@id/subtotal_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/subtotal_label" />
+
+    <TextView
+        android:id="@+id/tax_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:text="@string/tax"
+        android:textSize="19sp"
+        app:layout_constraintStart_toStartOf="@id/image"
+        app:layout_constraintTop_toBottomOf="@id/subtotal_label" />
+
+    <TextView
+        android:id="@+id/tax"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:textSize="19sp"
+        app:layout_constraintBottom_toBottomOf="@id/tax_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tax_label" />
+
+    <TextView
+        android:id="@+id/discounts_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:text="@string/discounts"
+        android:textSize="19sp"
+        app:layout_constraintStart_toStartOf="@id/image"
+        app:layout_constraintTop_toBottomOf="@id/tax_label" />
+
+    <TextView
+        android:id="@+id/discounts"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:textSize="19sp"
+        app:layout_constraintBottom_toBottomOf="@id/discounts_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/discounts_label" />
+
+
+    <TextView
+        android:id="@+id/to_pay_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:text="@string/total"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="@id/image"
+        app:layout_constraintTop_toBottomOf="@id/discounts_label" />
+
+    <TextView
+        android:id="@+id/to_pay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/to_pay_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/to_pay_label" />
+
+    <TextView
+        android:id="@+id/collected_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:text="@string/paid_out"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="@id/image"
+        app:layout_constraintTop_toBottomOf="@id/to_pay_label" />
+
+    <TextView
+        android:id="@+id/collected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/collected_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/collected_label" />
+
+    <TextView
+        android:id="@+id/change_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:text="@string/change"
+        android:layout_marginTop="5dp"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="@id/image"
+        app:layout_constraintTop_toBottomOf="@id/collected_label"
+        />
+
+    <TextView
+        android:id="@+id/change"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/change_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/change_label" />
+
+    <TextView
+        android:id="@+id/time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/nunito_sans_semibold"
+        android:text="11:00 AM"
+        android:layout_marginTop="15dp"
+        android:textSize="15sp"
+        app:layout_constraintTop_toBottomOf="@id/change_label"
+        app:layout_constraintEnd_toEndOf="@id/change"
+        />
+
+    <View
+        android:id="@+id/bottom_div"
+        android:layout_width="match_parent"
+        android:layout_height="0.7dp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintTop_toBottomOf="@id/time"
+        android:background="@color/black"/>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

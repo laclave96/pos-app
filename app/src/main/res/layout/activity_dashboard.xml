@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.savent.erp.presentation.viewmodel.DashboardViewModel" />
+        <import type="android.view.View" />
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".presentation.ui.activity.DashboardActivity">
+
+        <TextView
+            android:id="@+id/business_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="25dp"
+            android:fontFamily="@font/nunito_sans_bold"
+            android:text='@{viewModel.businessBasics.name ?? @string/empty}'
+            android:textColor="@color/white"
+            android:textSize="38sp"
+            app:layout_constraintEnd_toStartOf="@id/business_image"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/location_icon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginTop="18dp"
+            android:src="@drawable/ic_round_location_on_24"
+            android:tint="@color/white"
+            app:layout_constraintStart_toStartOf="@id/business_name"
+            app:layout_constraintTop_toBottomOf="@id/business_name"
+            />
+
+        <TextView
+            android:id="@+id/business_location"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="20dp"
+            android:fontFamily="@font/nunito_sans_semibold"
+            android:singleLine="true"
+            android:text='@{viewModel.businessBasics.address ?? @string/empty}'
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            app:layout_constraintBottom_toBottomOf="@id/location_icon"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/location_icon"
+            app:layout_constraintTop_toTopOf="@id/location_icon" />
+
+
+        <ImageView
+            android:id="@+id/store_icon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_round_store_24"
+            android:tint="@color/white"
+            android:layout_marginTop="15dp"
+            app:layout_constraintStart_toStartOf="@id/location_icon"
+            app:layout_constraintTop_toBottomOf="@id/business_location"
+            />
+
+        <TextView
+            android:id="@+id/store"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="20dp"
+            android:fontFamily="@font/nunito_sans_semibold"
+            android:singleLine="true"
+            android:text='@{viewModel.businessBasics.storeName ?? @string/empty}'
+            android:textColor="@color/white"
+            android:textSize="21sp"
+            app:layout_constraintStart_toEndOf="@id/store_icon"
+            app:layout_constraintTop_toTopOf="@id/store_icon"
+            app:layout_constraintBottom_toBottomOf="@id/store_icon"
+            />
+
+        <com.mikhaellopez.circularimageview.CircularImageView
+            android:id="@+id/business_image"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="25dp"
+            android:src="@drawable/savent_logo"
+            app:layout_constraintBottom_toBottomOf="@id/business_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/business_name" />
+
+        <View
+            android:id="@+id/top_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="-160dp"
+            android:background="@drawable/primary_blue_gradient"
+            android:translationZ="-1dp"
+            app:layout_constraintBottom_toTopOf="@id/bottom_layout"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/bottom_layout"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="25dp"
+            android:background="@drawable/white_back_20dp_top"
+            android:elevation="15dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/store">
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/middle_guide"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.5"
+               />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/bottom_actions_guide"
+                android:layout_width="wrap_content"
+                android:layout_height="2dp"
+                android:orientation="horizontal"
+                app:layout_constraintGuide_percent="0.35"
+                />
+
+            <View
+                android:id="@+id/middle_view"
+                android:layout_width="2dp"
+                android:layout_height="0dp"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="@id/bottom_debts"
+                app:layout_constraintStart_toStartOf="@id/middle_guide"
+                android:background="@color/gray_248"
+                />
+
+            <View
+                android:id="@+id/bottom_actions_view"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:orientation="horizontal"
+                app:layout_constraintTop_toTopOf="@id/bottom_actions_guide"
+                app:layout_constraintEnd_toEndOf="@id/bottom_actions_guide"
+                android:background="@color/gray_248"
+                />
+
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/create_sale"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="30dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintBottom_toBottomOf="@id/bottom_actions_guide"
+                app:layout_constraintEnd_toEndOf="@id/middle_guide"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/top_image_guide"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    app:layout_constraintGuide_percent="0.30" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/bottom_image_guide"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    app:layout_constraintGuide_percent="0.65" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/back_view"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:background="@drawable/blue_gradient_20dp"
+                    android:backgroundTint="@color/secundary_blue_60A"
+                    android:gravity="center"
+                    app:layout_constraintBottom_toBottomOf="@id/bottom_image_guide"
+                    app:layout_constraintDimensionRatio="1:1"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/top_image_guide"
+                    app:layout_constraintVertical_bias="0.25">
+
+
+                    <ImageView
+                        android:id="@+id/action_icon"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:src="@drawable/ic_round_shopping_cart_24"
+                        android:tint="@color/white"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintDimensionRatio="1.5:1"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <TextView
+                    android:id="@+id/action"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="15dp"
+                    android:fontFamily="@font/nunito_sans_regular"
+                    android:singleLine="true"
+                    android:text="@string/create_sale"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/back_view" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/add_client"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="30dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintBottom_toBottomOf="@id/bottom_actions_guide"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@id/middle_guide"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/top_image_guide1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    app:layout_constraintGuide_percent="0.30" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/bottom_image_guide1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    app:layout_constraintGuide_percent="0.65" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/back_view1"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:background="@drawable/blue_gradient_20dp"
+                    android:backgroundTint="@color/secundary_blue_60A"
+                    android:gravity="center"
+                    app:layout_constraintBottom_toBottomOf="@id/bottom_image_guide1"
+                    app:layout_constraintDimensionRatio="1:1"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/top_image_guide1"
+                    app:layout_constraintVertical_bias="0.25">
+
+                    <ImageView
+                        android:id="@+id/action_icon1"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:src="@drawable/ic_round_person_add_alt_1_24"
+                        android:tint="@color/white"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintDimensionRatio="1.5:1"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <TextView
+                    android:id="@+id/action1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="17dp"
+                    android:fontFamily="@font/nunito_sans_regular"
+                    android:singleLine="true"
+                    android:text="@string/add_client"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/back_view1" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <View
+                android:id="@+id/bottom_debts_view_div"
+                android:layout_width="0dp"
+                android:layout_height="2dp"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="@id/middle_guide"
+                app:layout_constraintTop_toTopOf="@id/bottom_debts"
+                android:background="@color/gray_248"
+                />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/get_debts"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="30dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintBottom_toBottomOf="@id/bottom_debts"
+                app:layout_constraintEnd_toEndOf="@id/middle_guide"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/bottom_actions_guide">
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/top_image_guide2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    app:layout_constraintGuide_percent="0.30" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/bottom_image_guide2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    app:layout_constraintGuide_percent="0.65" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/back_view2"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:background="@drawable/blue_gradient_20dp"
+                    android:backgroundTint="@color/secundary_blue_60A"
+                    android:gravity="center"
+                    app:layout_constraintBottom_toBottomOf="@id/bottom_image_guide2"
+                    app:layout_constraintDimensionRatio="1:1"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/top_image_guide2"
+                    app:layout_constraintVertical_bias="0.25">
+
+
+                    <ImageView
+                        android:id="@+id/action_icon2"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:src="@drawable/hand"
+                        android:tint="@color/white"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintDimensionRatio="1.5:1"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <TextView
+                    android:id="@+id/action2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="@font/nunito_sans_regular"
+                    android:singleLine="true"
+                    android:text="@string/debts_header"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.509"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/back_view2" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/bottom_debts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintGuide_percent="0.7"/>
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/top_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintGuide_percent="0.84"/>
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/start_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.74"/>
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/end_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.26"/>
+
+            <LinearLayout
+                android:id="@+id/create_button"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="20dp"
+                android:background="@drawable/blue_gradient_20dp"
+                android:clickable="true"
+                android:elevation="10dp"
+                android:focusable="true"
+                android:foreground="@drawable/ripple_8dp"
+                android:gravity="center"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintTop_toTopOf="@id/top_button"
+                app:layout_constraintStart_toStartOf="@id/start_button"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:onClick="seeSales">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="7dp"
+                    android:src="@drawable/ic_round_point_of_sale_white_24dp"
+                    android:tint="@color/white" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/exit_button"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="20dp"
+                android:background="@drawable/blue_gradient_20dp"
+                android:clickable="true"
+                android:elevation="10dp"
+                android:focusable="true"
+                android:foreground="@drawable/ripple_8dp"
+                android:gravity="center"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintTop_toTopOf="@id/top_button"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@id/end_button"
+                android:onClick="exitStore">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="7dp"
+                    android:src="@drawable/logout"
+                    android:tint="@color/white" />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
