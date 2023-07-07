@@ -10,7 +10,8 @@ It is a point of sale application for Android devices(targeted for tablets). It 
 - Collect customer debts
 - Management of daily sales
 - Manage warehouse movements
-- Record management of sales, subscriptions and movements without internet connection and with local cache for asynchronous synchronization
+- Record management of sales, debt payments and movements without internet connection and with local cache for asynchronous synchronization
+- Customer geolocation
 
 It is a native app developed in Kotlin, with the following technologies:
 - Room Database and Datastore
