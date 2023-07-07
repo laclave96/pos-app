@@ -3,10 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.savent.erp">
 
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -31,7 +31,24 @@
         android:theme="@style/Theme.SaventERP"
         android:usesCleartextTraffic="true"
         tools:replace="android:theme">
-        <activity android:name=".presentation.ui.activity.DebtsActivity"></activity>
+        <activity
+            android:name=".presentation.ui.activity.MovementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".presentation.ui.activity.MapActivity"
+            android:exported="false" />
+        <activity
+            android:name=".presentation.ui.activity.LastDebtPaymentsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".presentation.ui.activity.RemainingProductsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".presentation.ui.activity.DebtsActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".presentation.ui.activity.LastSalesActivity"
             android:exported="false"
@@ -59,6 +76,16 @@
             android:name=".presentation.ui.activity.MainActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.savent.erp.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

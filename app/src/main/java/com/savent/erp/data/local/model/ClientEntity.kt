@@ -8,7 +8,7 @@ import com.google.gson.annotations.SerializedName
 import com.savent.erp.utils.PendingRemoteAction
 
 @Entity(tableName = "clients")
-class ClientEntity(
+data class ClientEntity(
     @PrimaryKey(autoGenerate = true)
     var id: Int,
     @ColumnInfo(name = "remote_id")
@@ -38,6 +38,8 @@ class ClientEntity(
     val state: String?,
     val country: String?,
     val location: LatLng?,
+    @ColumnInfo(name = "credit_limit")
+    val creditLimit: Float?,
     @ColumnInfo(name = "date_timestamp")
     val dateTimestamp: Long?,
     @ColumnInfo(name = "remote_action")

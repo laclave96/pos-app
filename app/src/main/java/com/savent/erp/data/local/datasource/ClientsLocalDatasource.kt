@@ -14,6 +14,8 @@ interface ClientsLocalDatasource {
 
     suspend fun getClient(id:Int): Resource<ClientEntity>
 
+    suspend fun getClientByRemoteId(remoteId: Int): Resource<ClientEntity>
+
     fun getClients(): Flow<Resource<List<ClientEntity>>>
 
     fun getClients(query: String): Flow<Resource<List<ClientEntity>>>

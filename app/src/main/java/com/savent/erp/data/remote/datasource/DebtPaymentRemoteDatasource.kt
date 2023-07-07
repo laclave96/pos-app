@@ -9,6 +9,8 @@ interface DebtPaymentRemoteDatasource {
         sellerId: Int,
         storeId: Int,
         debtPayment: DebtPayment,
-        featureName: String,
+        companyId: Int,
     ): Resource<Int>
+
+    suspend fun getDebtPayments(storeId: Int, companyId: Int): Resource<List<DebtPayment>>
 }

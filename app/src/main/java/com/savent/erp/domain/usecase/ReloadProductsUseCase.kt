@@ -8,11 +8,9 @@ class ReloadProductsUseCase(private val productsRepository: ProductsRepository) 
 
     suspend operator fun invoke(
         storeId: Int,
-        clientId: Int,
-        featureName: String,
-        filter: String,
-        loadDiscounts: Boolean
+        companyId: Int,
+        filter: String
     ): Resource<Int> =
-        productsRepository.fetchProducts(storeId, clientId, featureName, filter, loadDiscounts)
+        productsRepository.fetchProducts(storeId,companyId, filter)
 
 }

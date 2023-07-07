@@ -1,5 +1,6 @@
 package com.savent.erp.domain.usecase
 
+import com.savent.erp.R
 import com.savent.erp.data.local.datasource.DebtPaymentLocalDatasource
 import com.savent.erp.data.local.model.DebtPaymentEntity
 import com.savent.erp.data.remote.datasource.DebtPaymentRemoteDatasource
@@ -8,68 +9,102 @@ import com.savent.erp.utils.DateFormat
 import com.savent.erp.utils.DateTimeObj
 import com.savent.erp.utils.PendingRemoteAction
 import com.savent.erp.utils.Resource
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.koin.java.KoinJavaComponent.inject
 
-class RemoteDebtPaymentSyncFromLocalUseCase(
-    private val localDatasource: DebtPaymentLocalDatasource,
-    private val remoteDatasource: DebtPaymentRemoteDatasource
-) {
 
-    suspend operator fun invoke(businessId: Int, sellerId: Int, storeId:Int, featureName: String) {
-        val sales = localDatasource.getDebtPayments().first()
-        var pendingTransactions: List<DebtPaymentEntity>? = null
-        if (sales is Resource.Success)
-            pendingTransactions = sales.data?.filter { saleEntity ->
-                saleEntity.pendingRemoteAction != PendingRemoteAction.COMPLETED
+class RemoteDebtPaymentSyncFromLocalUseCase {
+
+    companion object {
+
+        private val localDatasource: DebtPaymentLocalDatasource by inject(
+            DebtPaymentLocalDatasource::class.java
+        )
+        private val remoteDatasource: DebtPaymentRemoteDatasource by inject(
+            DebtPaymentRemoteDatasource::class.java
+        )
+        private val pendingTransactions: GetDebtPaymentsPendingToSendUseCase by inject(
+            GetDebtPaymentsPendingToSendUseCase::class.java
+        )
+
+        fun execute(
+            businessId: Int,
+            sellerId: Int,
+            storeId: Int,
+            companyId: Int
+        ): Resource<Int> =
+            synchronized(this) {
+                runBlocking(Dispatchers.IO){
+                    pendingTransactions().let {
+                        if (it is Resource.Success) {
+                            if (it.data?.isEmpty() == true)  Resource.Success(0)
+                            it.data?.let { list ->
+                                list.forEach { debtEntity ->
+                                    executeTransaction(
+                                        businessId,
+                                        sellerId,
+                                        storeId,
+                                        debtEntity,
+                                        companyId
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    pendingTransactions().let {
+                        if (it is Resource.Error || it.data?.isNotEmpty() == true)
+                            Resource.Error<Int>(resId = R.string.sync_output_error)
+                        Resource.Success(0)
+                    }
+                }
+
             }
-        pendingTransactions?.let { list ->
-            list.forEach { saleEntity ->
-                executeTransaction(
-                    businessId,
-                    sellerId,
-                    storeId,
-                    saleEntity,
-                    featureName
-                )
-            }
-        }
-    }
 
-    private suspend fun executeTransaction(
-        businessId: Int, sellerId: Int, storeId: Int,
-        debtPaymentEntity: DebtPaymentEntity, featureName: String
-    ) {
-        when (debtPaymentEntity.pendingRemoteAction) {
-            PendingRemoteAction.INSERT -> {
-                val response = remoteDatasource.insertDebtPayment(
-                    businessId,
-                    sellerId,
-                    storeId,
-                    mapToApiModel(debtPaymentEntity),
-                    featureName
-                )
-                if (response is Resource.Success) {
-                    debtPaymentEntity.pendingRemoteAction = PendingRemoteAction.COMPLETED
-                    localDatasource.updateDebtPayment(debtPaymentEntity)
+
+        private suspend fun executeTransaction(
+            businessId: Int, sellerId: Int, storeId: Int,
+            debtPaymentEntity: DebtPaymentEntity, companyId: Int
+        ) {
+            when (debtPaymentEntity.pendingRemoteAction) {
+                PendingRemoteAction.INSERT -> {
+                    val response = remoteDatasource.insertDebtPayment(
+                        businessId,
+                        sellerId,
+                        storeId,
+                        mapToApiModel(debtPaymentEntity),
+                        companyId
+                    )
+                    if (response is Resource.Success) {
+                        debtPaymentEntity.pendingRemoteAction = PendingRemoteAction.COMPLETED
+                        debtPaymentEntity.remoteId = response.data?:0
+                        localDatasource.updateDebtPayment(debtPaymentEntity)
+                    }
+                }
+
+                else -> {
                 }
             }
+        }
 
-            else -> {
-            }
+        private fun mapToApiModel(debtPaymentEntity: DebtPaymentEntity): DebtPayment {
+
+            return DebtPayment(
+                0,
+                debtPaymentEntity.saleId,
+                debtPaymentEntity.clientId,
+                DateTimeObj.fromLong(debtPaymentEntity.saleTimestamp),
+                DateTimeObj.fromLong(debtPaymentEntity.dateTimestamp),
+                debtPaymentEntity.toPay,
+                debtPaymentEntity.paid,
+                debtPaymentEntity.paymentMethod,
+            )
         }
     }
 
-    private fun mapToApiModel(debtPaymentEntity: DebtPaymentEntity): DebtPayment {
-        return DebtPayment(
-            debtPaymentEntity.saleId,
-            debtPaymentEntity.clientId,
-            DateTimeObj(
-                DateFormat.getString(debtPaymentEntity.dateTimestamp, "yyyy-MM-dd"),
-                DateFormat.getString(debtPaymentEntity.dateTimestamp, "HH:mm")
-            ),
-            debtPaymentEntity.toPay,
-            debtPaymentEntity.paid,
-            debtPaymentEntity.paymentMethod,
-        )
-    }
+
+
 }

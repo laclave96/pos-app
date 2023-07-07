@@ -12,9 +12,15 @@ import kotlinx.coroutines.flow.onEach
 class DebtPaymentLocalDatasourceImpl(private val debtPaymentDao: DebtPaymentDao):
     DebtPaymentLocalDatasource {
 
+    override suspend fun insertDebtPayments(debtPayments: List<DebtPaymentEntity>): Resource<Int> {
+        return if(debtPaymentDao.insertDebtPayments(debtPayments).size == debtPayments.size)
+            Resource.Success(0)
+        else Resource.Error(R.string.insert_debt_payments_error)
+    }
+
     override suspend fun insertDebtPayment(debtPayment: DebtPaymentEntity): Resource<Int> {
         val result = debtPaymentDao.insertDebtPayment(debtPayment)
-        if (result == 0L) return Resource.Error(resId = R.string.insert_debt_payment_error)
+        if (result == 0L) return Resource.Error(resId = R.string.insert_debt_payments_error)
         return Resource.Success()
     }
 

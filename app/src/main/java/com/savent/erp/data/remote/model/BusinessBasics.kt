@@ -16,11 +16,11 @@ class BusinessBasics (
     val storeId: Int,
     @SerializedName("store_name")
     val storeName: String,
+    @SerializedName("company_id")
+    val companyId: Int,
     val location: LatLng,
     val address: String,
     val image: String?,
     @SerializedName("receipt_footer")
     val receiptFooter: String?,
-    @SerializedName("feature_name")
-    val featureName: String
 )

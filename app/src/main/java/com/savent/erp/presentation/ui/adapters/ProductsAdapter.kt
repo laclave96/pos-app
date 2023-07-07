@@ -8,7 +8,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
@@ -20,17 +19,15 @@ class ProductsAdapter(private val context: Context?) :
     RecyclerView.Adapter<ProductsAdapter.ProductsViewHolder>() {
 
     private val products = ArrayList<ProductItem>()
-    private var _listener: OnClickListener? = null
+    private var _listener: OnEventListener? = null
 
-    interface OnClickListener {
-        fun onViewProductClick(id: Int)
+    interface OnEventListener {
         fun onAddProductClick(id: Int)
         fun onRemoveProductClick(id: Int)
         fun onChangeProductsUnitsClick(id: Int, units: Int)
     }
 
-
-    fun setOnClickListener(listener: OnClickListener) {
+    fun setOnEventListener(listener: OnEventListener) {
         _listener = listener
     }
 
@@ -46,38 +43,41 @@ class ProductsAdapter(private val context: Context?) :
         product.image?.let { holder.image }
         holder.name.text = product.name
         holder.price.text = context?.getString(R.string.price)?.format("${product.price}")
-        holder.remainingUnits.text = context?.getString(R.string.remaining_units)
-            ?.format("${product.remainingUnits}")
+        /*holder.remainingUnits.text = context?.getString(R.string.remaining_units)
+            ?.format("${product.remainingUnits}")*/
 
-        holder.unitsSelected.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                if (s.toString().isEmpty()) {
+        holder.unitsSelected.setOnFocusChangeListener { v, hasFocus ->
+            if (!hasFocus) {
+                if (holder.unitsSelected.text.toString().isEmpty()) {
                     holder.unitsSelected.setText("0")
-                    holder.unitsSelected.setSelection(holder.unitsSelected.text.length)
-                    return
                 }
-
-                _listener?.onChangeProductsUnitsClick(product.localId, s.toString().toInt())
+                if(holder.unitsSelected.text.toString().toInt() > product.remainingUnits)
+                    holder.unitsSelected.setText(product.remainingUnits.toString())
+                _listener?.onChangeProductsUnitsClick(
+                    product.id,
+                    holder.unitsSelected.text.toString().toInt()
+                )
             }
+        }
 
-        })
+        holder.unitsSelected.setText(
+            "${
+                product.remainingUnits.let {
+                    if (it < 0) product.selectedUnits + it
+                    else product.selectedUnits
+                }
+            }"
+        )
 
-        holder.unitsSelected.setText("${product.selectedUnits}")
         holder.unitsSelected.setSelection(holder.unitsSelected.text.length)
 
         holder.addUnit.setOnClickListener {
             if (product.remainingUnits != 0)
-                _listener?.onAddProductClick(product.localId)
+                _listener?.onAddProductClick(product.id)
         }
         holder.removeUnit.setOnClickListener {
             if (product.selectedUnits != 0)
-                _listener?.onRemoveProductClick(product.localId)
+                _listener?.onRemoveProductClick(product.id)
         }
 
     }
@@ -86,7 +86,7 @@ class ProductsAdapter(private val context: Context?) :
         products.size
 
     override fun getItemId(position: Int): Long {
-        return products[position].localId.toLong()
+        return products[position].id.toLong()
     }
 
     fun setData(newProducts: List<ProductItem>) {
@@ -98,7 +98,7 @@ class ProductsAdapter(private val context: Context?) :
     }
 
     class ProductsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val image: ImageView = itemView.findViewById(R.id.image)
+        val image: LinearLayout = itemView.findViewById(R.id.image)
         val name: TextView = itemView.findViewById(R.id.product_name)
         val price: TextView = itemView.findViewById(R.id.price)
         val remainingUnits: TextView = itemView.findViewById(R.id.stock)

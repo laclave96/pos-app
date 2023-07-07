@@ -14,7 +14,6 @@ class ProductsRemoteDatasourceImpl(
     override suspend fun insertProduct(businessId: Int, product: Product): Resource<Int> {
         try {
             val response = productApiService.insertProduct(businessId, product)
-            //Log.d("log_",response.toString())
             if (response.isSuccessful)
                 return Resource.Success(response.body())
             return Resource.Error(resId = R.string.add_product_error)
@@ -27,23 +26,20 @@ class ProductsRemoteDatasourceImpl(
 
     override suspend fun getProducts(
         storeId: Int,
-        clientId: Int,
-        featureName: String,
-        filter: String,
-        loadDiscounts: Boolean
+        companyId: Int,
+        filter: String
     ):
             Resource<List<Product>> {
         try {
             val response =
-                productApiService.getProducts(storeId, clientId, featureName, filter, loadDiscounts)
+                productApiService.getProducts(storeId, companyId, filter)
             //Log.d("log_",response.toString())
             //Log.d("log_",Gson().toJson(response.body()))
             if (response.isSuccessful)
                 return Resource.Success(response.body())
             return Resource.Error(resId = R.string.get_products_error)
         } catch (e: Exception) {
-            //Log.d("log_",e.toString())
-            return Resource.Error(message = "Error al conectar")
+            return Resource.Error(resId = R.string.sync_input_error, message = "Error al conectar")
         }
     }
 

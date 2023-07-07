@@ -6,7 +6,7 @@ import java.util.*
 class DateFormat() {
 
     companion object {
-        fun getString(timestamp: Long, format: String): String {
+        fun format(timestamp: Long, format: String): String {
             val simpleDateFormat = SimpleDateFormat(format, Locale.ENGLISH)
             return simpleDateFormat.format(Date(timestamp))
         }

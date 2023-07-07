@@ -9,7 +9,7 @@ import com.savent.erp.utils.PendingRemoteAction
 @Entity(tableName = "sales")
 class SaleEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    var id: Int = 0,
     @ColumnInfo(name = "remote_id")
     var remoteId: Int = 0,
     @ColumnInfo(name = "client_id")
@@ -29,7 +29,7 @@ class SaleEntity(
     var collected: Float = 0F,
     var total: Float = 0F,
     @ColumnInfo(name = "payment_method")
-    var paymentMethod: PaymentMethod = PaymentMethod.Cash,
+    var paymentMethod: PaymentMethod = PaymentMethod.Credit,
     @ColumnInfo(name = "remote_action")
     var pendingRemoteAction: PendingRemoteAction = PendingRemoteAction.INSERT
 ) {

@@ -55,11 +55,11 @@ class RemoteBusinessBasicsSyncFromLocalUseCase(
             businessBasicsLocal.sellerLevel,
             businessBasicsLocal.storeId,
             businessBasicsLocal.storeName,
+            businessBasicsLocal.companyId,
             businessBasicsLocal.location,
             businessBasicsLocal.address,
             businessBasicsLocal.image,
             businessBasicsLocal.receiptFooter,
-            businessBasicsLocal.featureName,
         )
     }
 }

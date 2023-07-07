@@ -10,16 +10,13 @@ import kotlinx.coroutines.flow.onEach
 class AppPreferencesLocalDatasourceImpl(
     private val dataObjectStorage: DataObjectStorage<AppPreferences>
 ): AppPreferencesLocalDatasource {
-    override suspend fun insertAppPreferences(preferences: AppPreferences): Resource<Int> =
-        dataObjectStorage.saveData(preferences)
 
+    override suspend fun insertOrUpdateAppPreferences(preferences: AppPreferences): Resource<Int> =
+        dataObjectStorage.saveData(preferences)
 
     override fun getAppPreferences(): Flow<Resource<AppPreferences>> = flow  {
         dataObjectStorage.getData().onEach { emit(it) }.collect()
     }
-
-    override suspend fun updateAppPreferences(preferences: AppPreferences): Resource<Int> =
-        dataObjectStorage.saveData(preferences)
 
     override suspend fun deleteAppPreferences(): Resource<Int> =
         dataObjectStorage.clear()

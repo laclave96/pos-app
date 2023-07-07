@@ -34,6 +34,7 @@ class DebtsActivity : AppCompatActivity() {
                     is DebtsViewModel.UiEvent.Back-> {
                         onBackPressed()
                     }
+                    else -> {}
                 }
             }
         }

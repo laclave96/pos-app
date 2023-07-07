@@ -1,10 +1,7 @@
 package com.savent.erp.data.local.database.dao
 
-import android.app.RemoteAction
 import androidx.room.*
-import com.savent.erp.data.local.model.ClientEntity
 import com.savent.erp.data.local.model.ProductEntity
-import com.savent.erp.data.remote.model.Client
 import com.savent.erp.utils.PendingRemoteAction
 import kotlinx.coroutines.flow.Flow
 
@@ -34,6 +31,9 @@ interface ProductDao {
 
     @Query("SELECT * FROM products WHERE id =:id")
     suspend fun getProduct(id: Int): ProductEntity?
+
+    @Query("SELECT * FROM products WHERE remote_id =:remoteId")
+    suspend fun getProduct(remoteId: Long): ProductEntity?
 
     @Query("SELECT * FROM products")
     fun getProducts(): Flow<List<ProductEntity>?>

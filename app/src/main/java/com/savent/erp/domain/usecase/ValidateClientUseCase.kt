@@ -28,7 +28,7 @@ class ValidateClientUseCase {
         if (client.maternalName?.isLettersOrWhiteSpaces() != true)
             clientError.maternalError = R.string.invalid_maternal_name
 
-        if (client.socialReason?.isLettersOrWhiteSpaces() != true)
+        if (client.socialReason?.isLettersWhiteSpacesOrDigits() != true )
             clientError.socialReasonError = R.string.invalid_social_reason
 
         if (client.rfc?.isLettersOrDigits() != true || client.rfc.length < 12)
@@ -68,7 +68,7 @@ class ValidateClientUseCase {
             clientError.stateError, clientError.countryError,
         ).isNotEmpty()
 
-        Log.d("validate",Gson().toJson(clientError))
+
         if (findError) return Resource.Error(
             resId = R.string.invalid_client,
             message = Gson().toJson(clientError)
@@ -82,6 +82,10 @@ class ValidateClientUseCase {
 
     private fun String.isLettersOrDigits(): Boolean = all {
         it.isLetterOrDigit()
+    }
+
+    private fun String.isLettersWhiteSpacesOrDigits(): Boolean = all {
+        it.isLetterOrDigit() || it == ' '
     }
 
     private fun String.isValidEmail(): Boolean {

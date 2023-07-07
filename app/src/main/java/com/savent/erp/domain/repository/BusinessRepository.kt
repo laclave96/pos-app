@@ -8,6 +8,7 @@ interface BusinessRepository {
 
     suspend fun insertBusiness(business: Business): Resource<Int>
 
-    suspend fun fetchBusiness(credentials: LoginCredentials): Resource<Business>
+    suspend fun fetchBusiness(credentials: LoginCredentials, storeId: Int, companyId: Int):
+            Resource<Business>
 
 }

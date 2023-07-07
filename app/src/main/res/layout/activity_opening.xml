@@ -19,7 +19,7 @@
             android:id="@+id/savent_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/nunito_sans_bold"
+            android:fontFamily="@font/comforta_bold"
             android:text="Savent"
             android:textAlignment="center"
             android:textColor="@color/white"

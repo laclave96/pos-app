@@ -1,10 +1,7 @@
 package com.savent.erp.presentation.viewmodel
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.google.gson.Gson
 import com.savent.erp.domain.usecase.IsLoggedUseCase
 import kotlinx.coroutines.Dispatchers
@@ -19,8 +16,8 @@ class OpeningViewModel(val isLoggedUseCase: IsLoggedUseCase): ViewModel() {
     val loading: LiveData<Boolean> = _loading
 
 
-    private val _uiEvent = MutableSharedFlow<UiEvent>()
-    val uiEvent = _uiEvent.asSharedFlow()
+    private val _uiEvent = MutableLiveData<UiEvent>()
+    val uiEvent = _uiEvent
 
     sealed class UiEvent {
         data class ShowMessage(val resId: Int? = null) : UiEvent()
@@ -32,7 +29,7 @@ class OpeningViewModel(val isLoggedUseCase: IsLoggedUseCase): ViewModel() {
     fun isLogged() {
         openingJob?.cancel()
         openingJob = viewModelScope.launch(Dispatchers.IO) {
-            _uiEvent.emit(UiEvent.LoggedIn(isLoggedUseCase()))
+            _uiEvent.postValue(UiEvent.LoggedIn(isLoggedUseCase()))
         }
 
     }

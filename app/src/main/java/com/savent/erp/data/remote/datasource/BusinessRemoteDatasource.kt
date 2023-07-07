@@ -8,6 +8,10 @@ import com.savent.erp.utils.Resource
 
 interface BusinessRemoteDatasource {
 
-    suspend fun getBusiness(credentials: LoginCredentials): Resource<Business>
+    suspend fun getBusiness(
+        credentials: LoginCredentials,
+        storeId: Int,
+        companyId: Int
+    ): Resource<Business>
 
 }

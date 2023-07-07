@@ -10,15 +10,13 @@ interface SalesRemoteDatasource {
         sellerId: Int,
         storeId: Int,
         sale: Sale,
-        featureName: String
+        companyId: Int
     ): Resource<Int>
 
     suspend fun getSales(
         businessId: Int,
-        sellerId: Int,
         storeId: Int,
         date: String,
-        featureName: String
-    ):
-            Resource<List<Sale>>
+        companyId: Int
+    ): Resource<List<Sale>>
 }

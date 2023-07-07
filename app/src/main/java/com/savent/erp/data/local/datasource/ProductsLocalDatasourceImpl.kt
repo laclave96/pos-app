@@ -1,10 +1,9 @@
 package com.savent.erp.data.local.datasource
 
-import android.util.Log
-import com.google.gson.Gson
 import com.savent.erp.R
 import com.savent.erp.data.local.database.dao.ProductDao
 import com.savent.erp.data.local.model.ProductEntity
+import com.savent.erp.utils.DateFormat
 import com.savent.erp.utils.PendingRemoteAction
 import com.savent.erp.utils.Resource
 import kotlinx.coroutines.flow.*
@@ -32,6 +31,14 @@ class ProductsLocalDatasourceImpl(private val productDao: ProductDao) : Products
     override suspend fun getProduct(id: Int): Resource<ProductEntity> {
         return try {
             Resource.Success(productDao.getProduct(id))
+        } catch (e: Exception) {
+            Resource.Error(resId = R.string.get_products_error)
+        }
+    }
+
+    override suspend fun getProduct(remoteId: Long): Resource<ProductEntity> {
+        return try {
+            Resource.Success(productDao.getProduct(remoteId))
         } catch (e: Exception) {
             Resource.Error(resId = R.string.get_products_error)
         }
@@ -90,13 +97,14 @@ class ProductsLocalDatasourceImpl(private val productDao: ProductDao) : Products
             productsList.data?.forEach {
                 val hash1 = listOf(
                     it.remoteId, it.name, it.barcode, it.description, it.image,
-                    it.price, it.discounts, it.IEPS, it.IVA, it.pendingRemoteAction
+                    it.price, it.IEPS, it.IVA, it.units,
+                    DateFormat.format(it.dateTimestamp, "yyyy-MM-dd")
                 ).hashCode()
                 val hash2 = listOf(
                     product.remoteId, product.name, product.barcode,
                     product.description, product.image, product.price,
-                    product.discounts, product.IEPS,
-                    product.IVA, product.pendingRemoteAction
+                    product.IEPS, product.IVA, product.units,
+                    DateFormat.format(it.dateTimestamp, "yyyy-MM-dd")
                 ).hashCode()
                 if (hash1 == hash2) return true
             }

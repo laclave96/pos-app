@@ -15,25 +15,40 @@ class DebtPaymentRemoteDatasourceImpl(private val debtPaymentApiService: DebtPay
         sellerId: Int,
         storeId: Int,
         debtPayment: DebtPayment,
-        featureName: String
+        companyId: Int
     ): Resource<Int> {
         try {
+            //Log.d("log_",Gson().toJson(debtPayment))
             val response =
                 debtPaymentApiService.insertDebtPayment(
                     businessId,
                     sellerId,
                     storeId,
                     Gson().toJson(debtPayment),
-                    featureName
-
+                    companyId
                 )
-            Log.d("log_",response.toString())
-            Log.d("log_",Gson().toJson(response.body()))
+            //Log.d("log_",response.toString())
+            //Log.d("log_",Gson().toJson(response.body()))
             if (response.isSuccessful)
                 return Resource.Success(response.body())
-            return Resource.Error(resId = R.string.insert_debt_payment_error)
+            return Resource.Error(resId = R.string.insert_debt_payments_error)
         } catch (e: Exception) {
-            Log.d("log_",e.toString())
+            //Log.d("log_",e.toString())
+            return Resource.Error(message = "ConnectionError")
+        }
+    }
+
+    override suspend fun getDebtPayments(storeId: Int, companyId: Int): Resource<List<DebtPayment>> {
+        try {
+            val response =
+                debtPaymentApiService.getPayments(storeId,companyId)
+            //Log.d("log_",response.toString())
+            //Log.d("log_",Gson().toJson(response.body()))
+            if (response.isSuccessful)
+                return Resource.Success(response.body())
+            return Resource.Error(resId = R.string.get_debt_payments_error)
+        } catch (e: Exception) {
+            //Log.d("log_",e.toString())
             return Resource.Error(message = "ConnectionError")
         }
     }

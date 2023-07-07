@@ -4,29 +4,45 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="15dp"
-    android:layout_marginTop="5dp"
     android:layout_marginEnd="15dp"
-    android:layout_marginBottom="5dp"
+    android:background="@drawable/ripple_0dp"
+    android:clickable="true"
+    android:focusable="true"
     >
 
-    <ImageView
+    <LinearLayout
         android:id="@+id/image"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_margin="12dp"
-        android:src="@drawable/ic_round_person_24"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:backgroundTint="@color/gray_243"
+        android:background="@drawable/white_back_20dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_margin="10dp"
+            android:src="@drawable/user"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/name"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
+        android:layout_marginStart="15dp"
         android:layout_marginEnd="10dp"
         android:layout_marginTop="1dp"
-        android:fontFamily="@font/nunito_sans_bold"
+        android:fontFamily="@font/comforta_bold"
         android:text="Alberto"
         android:textColor="@color/black"
         android:textSize="21sp"
@@ -41,7 +57,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:fontFamily="@font/nunito_sans_semibold"
+        android:fontFamily="@font/comforta_semibold"
         android:text="$1000"
         android:textColor="@color/red"
         android:textSize="21sp"
@@ -53,11 +69,11 @@
         android:id="@+id/location_icon"
         android:layout_width="25dp"
         android:layout_height="25dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="1dp"
+        android:layout_marginStart="-5dp"
+        android:layout_marginTop="5dp"
         android:src="@drawable/ic_outline_location_on_24"
-        android:tint="@color/secundary_blue"
-        app:layout_constraintStart_toEndOf="@id/image"
+        android:tint="@color/secondary_blue"
+        app:layout_constraintStart_toStartOf="@id/name"
         app:layout_constraintTop_toBottomOf="@id/name" />
 
     <TextView
@@ -65,7 +81,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="2dp"
-        android:fontFamily="@font/nunito_sans_regular"
+        android:fontFamily="@font/comforta_regular"
         android:text="Ciudad de México"
         android:textColor="@color/black"
         android:textSize="19sp"

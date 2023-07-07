@@ -30,10 +30,13 @@ class ClientsRepositoryImpl(
         })
 
     override suspend fun addClient(client: Client): Resource<Int> =
-        localDatasource.addClient(mapToEntity(client, PendingRemoteAction.INSERT))
+        localDatasource.addClient(mapToEntity(client, PendingRemoteAction.COMPLETED))
 
     override suspend fun getClient(id: Int): Resource<ClientEntity> =
         localDatasource.getClient(id)
+
+    override suspend fun getClientByRemoteId(remoteId: Int): Resource<ClientEntity> =
+        localDatasource.getClientByRemoteId(remoteId)
 
     override fun getClients(query: String): Flow<Resource<List<ClientEntity>>> = flow {
         localDatasource.getClients(query).onEach { emit(it) }.collect()
@@ -42,17 +45,20 @@ class ClientsRepositoryImpl(
     override suspend fun fetchClients(
         sellerId: Int,
         storeId: Int?,
-        featureName: String,
+        companyId: Int,
         category: String
     ): Resource<Int> {
-        val response = remoteDatasource.getClients(sellerId, storeId, featureName, category)
+        //Log.d("log_","fetchClients")
+        val response = remoteDatasource.getClients(sellerId, storeId, companyId, category)
+
         if (response is Resource.Success) {
             response.data?.let {
+                //Log.d("log_","response"+Gson().toJson(it))
                 insertClients(it)
             }
             return Resource.Success()
         }
-        return Resource.Error(resId = response.resId)
+        return Resource.Error(resId = response.resId, message = response.message)
     }
 
     override suspend fun updateClient(client: Client): Resource<Int> =
@@ -82,6 +88,7 @@ class ClientsRepositoryImpl(
             client.state?: "",
             client.country?: "",
             client.location,
+            client.creditLimit,
             System.currentTimeMillis(),
             actionPending
         )

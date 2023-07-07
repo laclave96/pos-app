@@ -11,11 +11,11 @@ class BusinessBasicsLocal(
     val sellerLevel: Int,
     val storeId: Int,
     val storeName: String,
+    val companyId: Int,
     val location: LatLng,
     val address: String,
     val image: String?,
     val receiptFooter: String?,
-    val featureName: String,
     var remoteAction: PendingRemoteAction
 ) {
 }

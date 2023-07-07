@@ -27,11 +27,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="30dp"
             android:layout_marginBottom="40dp"
-            android:fontFamily="@font/nunito_sans_bold"
-            android:lineSpacingMultiplier="0.87"
+            android:fontFamily="@font/comforta_bold"
+            android:lineSpacingMultiplier="1.1"
             android:text="@string/login"
             android:textColor="@color/white"
-            android:textSize="60sp"
+            android:textSize="65sp"
             app:layout_constraintTop_toTopOf="@id/top_guideline"
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -77,12 +77,12 @@
                 android:layout_marginStart="15dp"
                 android:src="@drawable/ic_round_info_24"
                 android:translationZ="1dp"
-                app:layout_constraintBottom_toBottomOf="@id/feature_edit"
-                app:layout_constraintStart_toStartOf="@id/feature_edit"
-                app:layout_constraintTop_toTopOf="@id/feature_edit" />
+                app:layout_constraintBottom_toBottomOf="@id/company_edit"
+                app:layout_constraintStart_toStartOf="@id/company_edit"
+                app:layout_constraintTop_toTopOf="@id/company_edit" />
 
-            <Spinner
-                android:id="@+id/feature_edit"
+            <TextView
+                android:id="@+id/company_edit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="35dp"
@@ -90,12 +90,12 @@
                 android:layout_marginBottom="20dp"
                 android:layout_marginTop="40dp"
                 android:background="@drawable/gray_235_back_18dp"
-                android:fontFamily="@font/nunito_sans_regular"
-                android:hint="@string/store"
-                android:inputType="text"
+                android:fontFamily="@font/comforta_regular"
+                android:hint="@string/companies"
+                android:textColorHint="@color/black"
                 android:paddingStart="50dp"
-                android:paddingTop="7dp"
-                android:paddingBottom="7dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="14dp"
                 android:textColor="@color/black"
                 android:textSize="19sp"
                 app:layout_constraintBottom_toTopOf="@id/rfc_edit"
@@ -120,7 +120,7 @@
                 android:layout_marginEnd="35dp"
                 android:layout_marginBottom="15dp"
                 android:background="@drawable/gray_235_back_18dp"
-                android:fontFamily="@font/nunito_sans_regular"
+                android:fontFamily="@font/comforta_regular"
                 android:hint="@string/rfc"
                 android:paddingStart="50dp"
                 android:paddingTop="14dp"
@@ -143,7 +143,6 @@
                 app:layout_constraintTop_toTopOf="@id/pin_edit" />
 
             <EditText
-
                 android:id="@+id/pin_edit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -151,7 +150,7 @@
                 android:layout_marginEnd="35dp"
                 android:layout_marginBottom="14dp"
                 android:background="@drawable/gray_235_back_18dp"
-                android:fontFamily="@font/nunito_sans_regular"
+                android:fontFamily="@font/comforta_regular"
                 android:hint="@string/pin"
                 android:inputType="text"
                 android:paddingStart="50dp"
@@ -173,7 +172,7 @@
                 app:layout_constraintStart_toStartOf="@id/store_edit"
                 app:layout_constraintTop_toTopOf="@id/store_edit" />
 
-            <Spinner
+            <TextView
                 android:id="@+id/store_edit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -181,12 +180,12 @@
                 android:layout_marginEnd="35dp"
                 android:layout_marginBottom="20dp"
                 android:background="@drawable/gray_235_back_18dp"
-                android:fontFamily="@font/nunito_sans_regular"
-                android:hint="@string/store"
-                android:inputType="text"
+                android:fontFamily="@font/comforta_regular"
+                android:hint="@string/stores"
+                android:textColorHint="@color/black"
                 android:paddingStart="50dp"
-                android:paddingTop="7dp"
-                android:paddingBottom="7dp"
+                android:paddingTop="14dp"
+                android:paddingBottom="14dp"
                 android:textColor="@color/black"
                 android:textSize="19sp"
                 app:layout_constraintTop_toBottomOf="@id/pin_edit"
@@ -199,7 +198,7 @@
                 android:layout_margin="35dp"
                 android:padding="10dp"
                 android:background="@drawable/blue_gradient_15dp"
-                android:fontFamily="@font/nunito_sans_bold"
+                android:fontFamily="@font/comforta_bold"
                 android:text="@string/start"
                 android:textAllCaps="false"
                 android:textColor="@color/white"

@@ -16,26 +16,27 @@ class LoginUseCase(
     private val credentialsRepository: CredentialsRepository
 ) {
 
-    operator fun invoke(loginCredentials: LoginCredentials):
+    operator fun invoke(loginCredentials: LoginCredentials, storeId: Int, companyId: Int):
             Flow<Resource<Business>> = flow {
 
         emit(Resource.Loading())
 
-        when (val response = businessRepository.fetchBusiness(loginCredentials)) {
+        when (val response =
+            businessRepository.fetchBusiness(loginCredentials, storeId, companyId)) {
             is Resource.Success -> {
                 credentialsRepository.insertCredentials(loginCredentials)
                 emit(Resource.Success())
             }
             is Resource.Error -> {
-                when (response.message){
-                    "ConnectionError" ->{
+                when (response.message) {
+                    "ConnectionError" -> {
                         emit(
                             Resource.Error(
                                 resId = R.string.connection_error,
                             )
                         )
                     }
-                    else ->{
+                    else -> {
                         emit(
                             Resource.Error(
                                 resId = R.string.match_login_credentials_error,

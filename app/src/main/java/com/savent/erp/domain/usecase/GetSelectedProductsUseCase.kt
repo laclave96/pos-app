@@ -17,7 +17,7 @@ class GetSelectedProductsUseCase(
             ) {
                 val idsSelected = pendingSale.data.selectedProducts
                 emit(Resource.Success(products.data.filter { productItem ->
-                    idsSelected.containsKey(productItem.localId) && productItem.selectedUnits != 0
+                    idsSelected.containsKey(productItem.id) && productItem.selectedUnits != 0
                 }))
             }else
                 emit(Resource.Error<List<ProductItem>>(resId = R.string.get_products_error))

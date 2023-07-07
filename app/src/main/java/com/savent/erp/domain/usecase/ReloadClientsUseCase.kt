@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.first
 
 class ReloadClientsUseCase(private val clientsRepository: ClientsRepository) {
 
-    suspend operator fun invoke(sellerId: Int, storeId: Int?, featureName: String, category: String):
+    suspend operator fun invoke(sellerId: Int, storeId: Int?, companyId: Int, category: String):
             Resource<Int> =
-        clientsRepository.fetchClients(sellerId, storeId, featureName, category)
+        clientsRepository.fetchClients(sellerId, storeId, companyId, category)
 
 
 }

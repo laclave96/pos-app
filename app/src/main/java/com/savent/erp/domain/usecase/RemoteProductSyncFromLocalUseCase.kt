@@ -73,7 +73,6 @@ class RemoteProductSyncFromLocalUseCase(
             productEntity.description,
             productEntity.image,
             productEntity.price,
-            productEntity.discounts,
             productEntity.IEPS,
             productEntity.IVA,
             productEntity.units

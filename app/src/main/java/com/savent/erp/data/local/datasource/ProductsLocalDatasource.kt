@@ -13,6 +13,8 @@ interface ProductsLocalDatasource {
 
     suspend fun getProduct(id: Int): Resource<ProductEntity>
 
+    suspend fun getProduct(remoteId: Long): Resource<ProductEntity>
+
     fun getProducts(): Flow<Resource<List<ProductEntity>>>
 
     fun getProducts(query: String): Flow<Resource<List<ProductEntity>>>

@@ -19,15 +19,17 @@ class BusinessRemoteDatasourceImpl(
     private val businessApiService: BusinessApiService
 ) : BusinessRemoteDatasource {
 
-    override suspend fun getBusiness(credentials: LoginCredentials): Resource<Business> {
+    override suspend fun getBusiness(credentials: LoginCredentials, storeId: Int, companyId: Int):
+            Resource<Business> {
         try {
-            val response = businessApiService.getBusiness(Gson().toJson(credentials))
-            Log.d("log_",response.toString())
+            val response =
+                businessApiService.getBusiness(Gson().toJson(credentials), storeId, companyId)
+            //Log.d("log_",response.toString())
             if (response.isSuccessful)
                 return Resource.Success(response.body())
             return Resource.Error(message = response.message().toString())
-        }catch (e: Exception){
-            Log.d("log_",e.toString())
+        } catch (e: Exception) {
+            //Log.d("log_",e.toString())
             return Resource.Error(message = "ConnectionError")
         }
 

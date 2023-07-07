@@ -13,102 +13,117 @@ import com.savent.erp.utils.DateFormat
 import com.savent.erp.utils.DateTimeObj
 import com.savent.erp.utils.PendingRemoteAction
 import com.savent.erp.utils.Resource
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.koin.java.KoinJavaComponent.inject
 
-class RemoteSaleSyncFromLocalUseCase(
-    private val localDatasource: SalesLocalDatasource,
-    private val remoteDatasource: SalesRemoteDatasource,
-    private val clientsRepository: ClientsRepository,
-    private val productsRepository: ProductsRepository
-) {
+class RemoteSaleSyncFromLocalUseCase{
 
-    suspend operator fun invoke(businessId: Int, sellerId: Int, storeId:Int, featureName: String) {
-        val sales = localDatasource.getSales().first()
-        var pendingTransactions: List<SaleEntity>? = null
-        if (sales is Resource.Success)
-            pendingTransactions = sales.data?.filter { saleEntity ->
-                saleEntity.pendingRemoteAction != PendingRemoteAction.COMPLETED
+    companion object {
+
+        private val localDatasource: SalesLocalDatasource by inject(
+            SalesLocalDatasource::class.java
+        )
+        private val remoteDatasource: SalesRemoteDatasource by inject(
+            SalesRemoteDatasource::class.java
+        )
+        private val clientsRepository: ClientsRepository by inject(
+            ClientsRepository::class.java
+        )
+        private val pendingTransactions: GetSalesPendingToSendUseCase by inject(
+            GetSalesPendingToSendUseCase::class.java
+        )
+
+        fun execute(
+            businessId: Int,
+            sellerId: Int,
+            storeId: Int,
+            companyId: Int
+        ): Resource<Int> =
+            synchronized(this){
+                runBlocking (Dispatchers.IO){
+                    pendingTransactions().let {
+                        if (it is Resource.Success) {
+                            if (it.data?.isEmpty() == true) Resource.Success(0)
+                            it.data?.let { list ->
+                                list.forEach { saleEntity ->
+                                    executeTransaction(
+                                        businessId,
+                                        sellerId,
+                                        storeId,
+                                        saleEntity,
+                                        companyId
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    pendingTransactions().let {
+                        if (it is Resource.Error || it.data?.isNotEmpty() == true)
+                            Resource.Error<Int>(resId = R.string.sync_output_error)
+                        Resource.Success(0)
+                    }
+                }
+
             }
-        pendingTransactions?.let { list ->
-            list.forEach { saleEntity ->
-                executeTransaction(
-                    businessId,
-                    sellerId,
-                    storeId,
-                    saleEntity,
-                    featureName
-                )
-            }
-        }
-    }
 
-    private suspend fun executeTransaction(
-        businessId: Int, sellerId: Int, storeId: Int,
-        saleEntity: SaleEntity, featureName: String
-    ) {
-        when (saleEntity.pendingRemoteAction) {
-            PendingRemoteAction.INSERT -> {
-                val response = remoteDatasource.insertSale(
-                    businessId,
-                    sellerId,
-                    storeId,
-                    mapToApiModel(saleEntity),
-                    featureName
-                )
-                Log.d("log_","InsertSale"+"Inserting")
-                if (response is Resource.Success) {
-                    Log.d("log_","InsertSale"+"Success")
-                    saleEntity.remoteId = response.data!!
-                    saleEntity.pendingRemoteAction = PendingRemoteAction.COMPLETED
-                    localDatasource.updateSale(saleEntity)
+
+
+        private suspend fun executeTransaction(
+            businessId: Int, sellerId: Int, storeId: Int,
+            saleEntity: SaleEntity, companyId: Int
+        ) {
+            when (saleEntity.pendingRemoteAction) {
+                PendingRemoteAction.INSERT -> {
+                    val response = remoteDatasource.insertSale(
+                        businessId,
+                        sellerId,
+                        storeId,
+                        mapToApiModel(saleEntity),
+                        companyId
+                    )
+                    if (response is Resource.Success) {
+                        saleEntity.remoteId = response.data!!
+                        saleEntity.pendingRemoteAction = PendingRemoteAction.COMPLETED
+                        localDatasource.updateSale(saleEntity)
+                    }
+                }
+
+                else -> {
                 }
             }
-
-            else -> {
-            }
         }
-    }
 
-    private suspend fun mapToApiModel(sale: SaleEntity): Sale {
-        val client = clientsRepository.getClient(sale.clientId)
-        val selectedProducts = HashMap<Int, Int>()
-        if (client is Resource.Error) return Sale()
+        private suspend fun mapToApiModel(sale: SaleEntity): Sale {
+            val client = clientsRepository.getClientByRemoteId(sale.clientId)
+            if (client is Resource.Error) return Sale()
 
-        var clientRemoteId = 0
-        var clientName = ""
-        client.data?.let { clientEntity ->
-            clientRemoteId = clientEntity.remoteId ?: 0
-            clientName =
-                clientEntity.paternalName + " " + clientEntity.maternalName + " " + clientEntity.name
-        } ?: Resource.Error<Int>(resId = R.string.unknown_error)
-
-        sale.selectedProducts.entries.forEach { it1 ->
-            val product = productsRepository.getProduct(it1.key)
-            if (product is Resource.Error) return Sale()
-
-            product.data?.let { productEntity ->
-                selectedProducts[productEntity.remoteId] = it1.value
+            var clientName = ""
+            client.data?.let { clientEntity ->
+                clientName =
+                    (clientEntity.paternalName?:"") + " " + (clientEntity.maternalName?:"") + " " + (clientEntity.name?:"")
             } ?: Resource.Error<Int>(resId = R.string.unknown_error)
 
+            return Sale(
+                sale.remoteId,
+                sale.clientId,
+                clientName,
+                DateTimeObj.fromLong(sale.dateTimestamp),
+                sale.selectedProducts,
+                sale.subtotal,
+                sale.discounts,
+                sale.IVA,
+                sale.IEPS,
+                sale.extraDiscountPercent,
+                sale.collected,
+                sale.total,
+                sale.paymentMethod
+            )
         }
-
-        return Sale(
-            sale.remoteId,
-            clientRemoteId,
-            clientName,
-            DateTimeObj(
-                DateFormat.getString(sale.dateTimestamp, "yyyy-MM-dd"),
-                DateFormat.getString(sale.dateTimestamp, "HH:mm")
-            ),
-            selectedProducts,
-            sale.subtotal,
-            sale.discounts,
-            sale.IVA,
-            sale.IEPS,
-            sale.extraDiscountPercent,
-            sale.collected,
-            sale.total,
-            sale.paymentMethod
-        )
     }
+
+
 }

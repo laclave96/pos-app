@@ -52,11 +52,11 @@ class BusinessBasicsRepositoryImpl(
             businessBasics.sellerLevel,
             businessBasics.storeId,
             businessBasics.storeName,
+            businessBasics.companyId,
             businessBasics.location,
             businessBasics.address,
             businessBasics.image,
             businessBasics.receiptFooter,
-            businessBasics.featureName,
             action
         )
     }

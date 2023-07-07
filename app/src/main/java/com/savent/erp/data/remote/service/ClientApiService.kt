@@ -12,14 +12,14 @@ interface ClientApiService {
         @Query("sellerId") sellerId: Int,
         @Query("storeId") storeId: Int,
         @Query("client") client: String,
-        @Query("featureName") featureName: String
+        @Query("companyId") companyId: Int
     ): Response<Int>
 
     @GET(AppConstants.CLIENTS_API_PATH)
     suspend fun getClients(
         @Query("sellerId") sellerId: Int,
         @Query("storeId") storeId: Int?,
-        @Query("featureName") featureName: String,
+        @Query("companyId") companyId: Int,
         @Query("filter") filter: String
     ): Response<List<Client>>
 
@@ -28,13 +28,15 @@ interface ClientApiService {
         @Query("sellerId") sellerId: Int,
         @Query("storeId") storeId: Int,
         @Query("id") clientId: Int,
-        @Query("featureName") featureName: String
+        @Query("companyId") companyId: Int
     ): Response<Client>
 
     @PUT(AppConstants.CLIENTS_API_PATH)
     suspend fun updateClient(
         @Query("sellerId") sellerId: Int,
-        @Body client: Client
+        @Query("storeId") storeId: Int,
+        @Query("client") client: String,
+        @Query("companyId") companyId: Int
     ): Response<Int>
 
     @DELETE(AppConstants.CLIENTS_API_PATH)

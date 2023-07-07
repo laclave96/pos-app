@@ -3,6 +3,8 @@ package com.savent.erp.domain.usecase
 
 import com.savent.erp.R
 import com.savent.erp.data.local.model.SaleEntity
+import com.savent.erp.domain.repository.DiscountsRepository
+import com.savent.erp.domain.repository.ClientsRepository
 import com.savent.erp.domain.repository.ProductsRepository
 import com.savent.erp.domain.repository.SalesRepository
 import com.savent.erp.utils.Resource
@@ -10,7 +12,9 @@ import kotlinx.coroutines.flow.first
 
 class ComputePendingSalePriceUseCase(
     private val productsRepository: ProductsRepository,
-    private val salesRepository: SalesRepository
+    private val salesRepository: SalesRepository,
+    private val clientsRepository: ClientsRepository,
+    private val discountsRepository: DiscountsRepository,
 ) {
 
     suspend operator fun invoke(): Resource<Int> {
@@ -22,6 +26,8 @@ class ComputePendingSalePriceUseCase(
                 var IVA = 0F
                 var IEPS = 0F
                 var discounts = 0F
+                val clientId = clientsRepository.getClient(it.clientId).data?.remoteId
+                    ?: return Resource.Error(resId = R.string.get_clients_error)
                 productsSelected.entries.forEach { it1 ->
                     when (val product = productsRepository.getProduct(it1.key)) {
                         is Resource.Success -> {
@@ -29,14 +35,23 @@ class ComputePendingSalePriceUseCase(
                                 subtotal += productEntity.price * it1.value
                                 IVA += productEntity.IVA.times(it1.value)
                                 IEPS += productEntity.IEPS.times(it1.value)
-                                discounts += productEntity.discounts.times(it1.value)
+                                discountsRepository.getDiscount(
+                                    productEntity.remoteId,
+                                    clientId
+                                ).let { result ->
+                                    if (result is Resource.Error)
+                                        return Resource.Error(resId = R.string.get_discounts_error)
+                                    result.data?.value?.let { discount ->
+                                        discounts += discount.times(it1.value) }
+                                }
                             }
                         }
+                        else -> {}
                     }
 
                 }
                 val subtotal1 = subtotal - discounts
-                val extraDiscount = (it.extraDiscountPercent / (100 * 1F))  * subtotal1
+                val extraDiscount = (it.extraDiscountPercent / (100 * 1F)) * subtotal1
                 val finalPrice = subtotal1 - extraDiscount + IVA + IEPS
 
                 return salesRepository.updatePendingSale(

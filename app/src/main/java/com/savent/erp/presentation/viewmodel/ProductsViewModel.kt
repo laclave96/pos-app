@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.savent.erp.ConnectivityObserver
 import com.savent.erp.MyApplication
 import com.savent.erp.R
@@ -14,6 +15,7 @@ import com.savent.erp.data.local.model.AppPreferences
 import com.savent.erp.data.local.model.BusinessBasicsLocal
 import com.savent.erp.domain.repository.BusinessBasicsRepository
 import com.savent.erp.domain.repository.ClientsRepository
+import com.savent.erp.domain.repository.DiscountsRepository
 import com.savent.erp.domain.usecase.*
 import com.savent.erp.presentation.ui.model.ProductItem
 import com.savent.erp.utils.Resource
@@ -31,7 +33,8 @@ class ProductsViewModel(
     private val addProductToSaleUseCase: AddProductToSaleUseCase,
     private val changeUnitsOfSelectedProductsUseCase: ChangeUnitsOfSelectedProductsUseCase,
     private val getPendingSaleUseCase: GetPendingSaleUseCase,
-    private val clientsRepository: ClientsRepository
+    private val clientsRepository: ClientsRepository,
+    private val discountsRepository: DiscountsRepository
 ) : ViewModel() {
 
     private val _loading = MutableLiveData(false)
@@ -52,7 +55,7 @@ class ProductsViewModel(
     val uiEvent = _uiEvent.asSharedFlow()
 
     sealed class UiEvent {
-        data class ShowMessage(val resId: Int? = null) : UiEvent()
+        data class ShowMessage(val resId: Int? = null, val message: String? = null) : UiEvent()
         data class Continue(val available: Boolean = false) : UiEvent()
     }
 
@@ -60,6 +63,8 @@ class ProductsViewModel(
     private var loadProductsJob: Job? = null
     private var reloadProductsJob: Job? = null
     private var changeProductsFilterJob: Job? = null
+    private var syncIODataJob: Job? = null
+    private var reloadDiscountsJob: Job? = null
     private var defaultJob: Job? = null
     private var addProductJob: Job? = null
     private var removeProductJob: Job? = null
@@ -67,23 +72,21 @@ class ProductsViewModel(
     private var networkObserverJob: Job? = null
 
     init {
-        loadData()
         observeNetworkChange()
+        loadData()
     }
 
     private fun observeNetworkChange() {
         networkObserverJob?.cancel()
         networkObserverJob = viewModelScope.launch(Dispatchers.IO) {
-            (myApplication as MyApplication).networkStatus.collectLatest {
+            _networkStatus.postValue((myApplication as MyApplication).currentNetworkStatus)
+            myApplication.networkStatus.collectLatest {
                 _networkStatus.postValue(it)
                 if (it == ConnectivityObserver.Status.Available)
-                    if (isInternetAvailable()) {
-                        Log.d("log_","available")
-                        fetchProductsFromNetwork(
-                            _appPreferences.value?.productsFilter ?: "",
-                            _appPreferences.value?.loadProductsDiscounts ?: false
-                        )
-                    }
+                    syncIOData(
+                        _appPreferences.value?.productsFilter ?: "",
+                        _appPreferences.value?.loadProductsDiscounts ?: false
+                    )
             }
         }
 
@@ -97,11 +100,7 @@ class ProductsViewModel(
             loadBusinessBasics()
             delay(1000)
             if (isInternetAvailable())
-                fetchProductsFromNetwork(
-                    _appPreferences.value?.productsFilter ?: "",
-                    _appPreferences.value?.loadProductsDiscounts ?: false
-                )
-
+                syncIOData()
         }
     }
 
@@ -118,20 +117,122 @@ class ProductsViewModel(
             _businessBasics = businessBasics.data
     }
 
-    private fun fetchProductsFromNetwork(productsFilter: String, loadDiscounts: Boolean) {
+    fun changeProductsFilter(productsFilter: String, loadDiscounts: Boolean) {
+        changeProductsFilterJob?.cancel()
+        changeProductsFilterJob = viewModelScope.launch(Dispatchers.IO) {
+            if (appPreferencesLocalDatasource.insertOrUpdateAppPreferences(
+                    _appPreferences.value!!.copy(
+                        productsFilter = productsFilter,
+                        loadProductsDiscounts = loadDiscounts
+                    )
+                ) is Resource.Success
+            )
+                _appPreferences.postValue(_appPreferences.value!!.copy(productsFilter = productsFilter))
+
+            if (isInternetAvailable()) {
+                _loading.postValue(true)
+                removeAllProductsUseCase()
+                syncIOData(productsFilter, loadDiscounts)
+            }
+
+        }
+
+    }
+
+    private fun fetchProductsFromNetwork(productsFilter: String) {
         reloadProductsJob?.cancel()
         reloadProductsJob = viewModelScope.launch(Dispatchers.IO) {
-            reloadProductsUseCase(
+            when (val result = reloadProductsUseCase(
                 _businessBasics!!.storeId,
-                clientsRepository.getClient(
-                    getPendingSaleUseCase().first().data?.clientId ?: 0
-                ).data?.remoteId ?: 0,
-                _businessBasics!!.featureName,
-                productsFilter,
-                loadDiscounts
-            )
-            _loading.postValue(false)
+                _businessBasics?.companyId ?: 1,
+                productsFilter
+            )) {
+                is Resource.Error -> {
+                    _loading.postValue(false)
+                    _uiEvent.emit(
+                        UiEvent.ShowMessage(result.resId, result.message)
+                    )
+
+                }
+                else -> {
+                    _loading.postValue(false)
+                }
+            }
         }
+    }
+
+    private fun reloadClientDiscounts(loadDiscounts: Boolean) {
+        reloadDiscountsJob?.cancel()
+        reloadDiscountsJob = viewModelScope.launch(Dispatchers.IO) {
+            val clientId = clientsRepository.getClient(
+                getPendingSaleUseCase().first().data?.clientId ?: 1
+            ).data?.remoteId ?: kotlin.run {
+                _uiEvent.emit(
+                    UiEvent.ShowMessage(R.string.get_clients_error)
+                )
+                return@launch
+            }
+            if (loadDiscounts) {
+                when (val result = discountsRepository.fetchDiscounts(
+                    _businessBasics?.storeId ?: 0,
+                    clientId,
+                )) {
+                    is Resource.Error -> {
+                        _uiEvent.emit(
+                            UiEvent.ShowMessage(result.resId, result.message)
+                        )
+
+                    }
+                    else -> {}
+                }
+            } else {
+                when (val resource = discountsRepository.deleteDiscounts(clientId)) {
+                    is Resource.Error -> {
+                        _uiEvent.emit(
+                            UiEvent.ShowMessage(resource.resId, resource.message)
+                        )
+                    }
+                    else -> {}
+                }
+            }
+
+        }
+    }
+
+
+    suspend fun syncIOData(
+        productsFilter: String = _appPreferences.value?.productsFilter ?: "",
+        loadDiscounts: Boolean = _appPreferences.value?.loadProductsDiscounts
+            ?: false
+    ) {
+        _loading.postValue(true)
+        syncIODataJob?.cancel()
+        syncIODataJob = viewModelScope.launch(Dispatchers.IO) {
+            reloadClientDiscounts(loadDiscounts)
+            when (val result = RemoteSaleSyncFromLocalUseCase.execute(
+                _businessBasics?.id ?: 0,
+                _businessBasics?.sellerId ?: 0,
+                _businessBasics?.storeId ?: 0,
+                _businessBasics?.companyId ?: 1
+            )) {
+                is Resource.Error -> {
+                    _loading.postValue(false)
+                    _uiEvent.emit(
+                        UiEvent.ShowMessage(result.resId, result.message)
+                    )
+
+                }
+                is Resource.Success -> {
+                    fetchProductsFromNetwork(
+                        productsFilter
+                    )
+                }
+                else -> {
+                    _loading.postValue(false)
+                }
+            }
+        }
+
     }
 
 
@@ -203,6 +304,7 @@ class ProductsViewModel(
     }
 
     fun changeUnitsOfSelectedProducts(productId: Int, units: Int) {
+        Log.d("log_","productId:$productId//units:$units")
         changeProductsUnits?.cancel()
         changeProductsUnits = viewModelScope.launch(Dispatchers.IO) {
             when (val result = changeUnitsOfSelectedProductsUseCase(productId, units)) {
@@ -219,7 +321,6 @@ class ProductsViewModel(
             }
         }
     }
-
 
     fun await() {
         defaultJob?.cancel()
@@ -248,8 +349,9 @@ class ProductsViewModel(
         return true
     }
 
-    private suspend fun isInternetAvailable(): Boolean {
+    suspend fun isInternetAvailable(): Boolean {
         if (_networkStatus.value != ConnectivityObserver.Status.Available) {
+            _loading.postValue(false)
             _uiEvent.emit(UiEvent.ShowMessage(resId = R.string.internet_error))
             return false
         }

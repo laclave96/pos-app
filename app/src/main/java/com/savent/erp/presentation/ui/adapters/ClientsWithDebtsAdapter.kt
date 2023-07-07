@@ -3,22 +3,23 @@ package com.savent.erp.presentation.ui.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.savent.erp.R
+import com.savent.erp.presentation.ui.model.ClientDebt
 import com.savent.erp.presentation.ui.model.ClientWithDebtItem
 import com.savent.erp.utils.DecimalFormat
 
-class ClientsWithDebtsAdapter: RecyclerView.Adapter<ClientsWithDebtsAdapter.ClientsViewHolder>() {
+class ClientsWithDebtsAdapter : RecyclerView.Adapter<ClientsWithDebtsAdapter.ClientsViewHolder>() {
 
     private val clients = ArrayList<ClientWithDebtItem>()
 
     private var _listener: OnClickListener? = null
 
     interface OnClickListener {
-        fun onClick(clientId: Int, clientName: String)
+        fun onClick(clientId: Int, clientDebt: ClientDebt)
     }
 
     fun setOnClickListener(listener: OnClickListener) {
@@ -38,7 +39,10 @@ class ClientsWithDebtsAdapter: RecyclerView.Adapter<ClientsWithDebtsAdapter.Clie
         holder.address.text = clientItem.address
         holder.debts.text = "$${DecimalFormat.format(clientItem.debt)}"
         holder.itemView.setOnClickListener {
-            _listener?.onClick(clientItem.localId, clientItem.name)
+            _listener?.onClick(
+                clientItem.remoteId,
+                ClientDebt(clientItem.name, holder.debts.text.toString())
+            )
         }
     }
 
@@ -46,7 +50,7 @@ class ClientsWithDebtsAdapter: RecyclerView.Adapter<ClientsWithDebtsAdapter.Clie
         clients.size
 
     override fun getItemId(position: Int): Long {
-        return clients[position].localId.toLong()
+        return clients[position].remoteId.toLong()
     }
 
     fun setData(newClients: List<ClientWithDebtItem>) {
@@ -60,7 +64,7 @@ class ClientsWithDebtsAdapter: RecyclerView.Adapter<ClientsWithDebtsAdapter.Clie
     class ClientsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val name: TextView = itemView.findViewById(R.id.name)
         val address: TextView = itemView.findViewById(R.id.location_tv)
-        val image: ImageView = itemView.findViewById(R.id.image)
+        val image: LinearLayout = itemView.findViewById(R.id.image)
         val debts: TextView = itemView.findViewById(R.id.debts)
     }
 }

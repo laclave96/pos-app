@@ -10,10 +10,14 @@ import com.savent.erp.utils.PendingRemoteAction
 class DebtPaymentEntity (
     @PrimaryKey(autoGenerate = true)
     var id: Int,
+    @ColumnInfo(name = "remote_id")
+    var remoteId: Int,
     @ColumnInfo(name = "sale_id")
     var saleId: Int,
     @ColumnInfo(name = "client_id")
     var clientId: Int,
+    @ColumnInfo(name = "sale_timestamp")
+    var saleTimestamp: Long,
     @ColumnInfo(name = "date_timestamp")
     var dateTimestamp: Long,
     @ColumnInfo(name = "to_pay")

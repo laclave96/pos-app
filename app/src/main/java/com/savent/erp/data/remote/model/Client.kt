@@ -1,6 +1,5 @@
 package com.savent.erp.data.remote.model
 
-import androidx.room.ColumnInfo
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.annotations.SerializedName
 import com.savent.erp.utils.DateTimeObj
@@ -31,6 +30,8 @@ data class Client(
     val state: String?,
     val country: String?,
     val location: LatLng?,
+    @SerializedName("credit_limit")
+    val creditLimit: Float?,
     @SerializedName("date_timestamp")
     val dateTimestamp: DateTimeObj?,
 ) {

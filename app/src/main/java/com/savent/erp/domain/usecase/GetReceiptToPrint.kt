@@ -1,43 +1,51 @@
 package com.savent.erp.domain.usecase
 
-import android.util.Log
-import com.mazenrashed.printooth.data.printable.ImagePrintable
 import com.mazenrashed.printooth.data.printable.Printable
 import com.mazenrashed.printooth.data.printable.RawPrintable
 import com.mazenrashed.printooth.data.printable.TextPrintable
 import com.mazenrashed.printooth.data.printer.DefaultPrinter
 import com.savent.erp.R
+import com.savent.erp.domain.repository.BusinessBasicsRepository
+import com.savent.erp.domain.repository.ClientsRepository
+import com.savent.erp.domain.repository.ProductsRepository
 import com.savent.erp.domain.repository.SalesRepository
-import com.savent.erp.utils.DateFormat
-import com.savent.erp.utils.DecimalFormat
-import com.savent.erp.utils.PaymentMethod
-import com.savent.erp.utils.Resource
+import com.savent.erp.utils.*
 import kotlinx.coroutines.flow.first
 import java.text.Normalizer
 
 class GetReceiptToPrint(
-    private val businessBasicsUseCase: GetBusinessBasicsUseCase,
+    private val businessBasicsRepository: BusinessBasicsRepository,
     private val salesRepository: SalesRepository,
-    private val getSelectedProductsUseCase: GetSelectedProductsUseCase
+    private val productsRepository: ProductsRepository,
+    private val clientsRepository: ClientsRepository,
 ) {
-    suspend operator fun invoke(): Resource<ArrayList<Printable>> {
+    suspend operator fun invoke(saleId: Int): Resource<ArrayList<Printable>> {
 
-        val businessBasics = businessBasicsUseCase().first()
+        val businessBasics = businessBasicsRepository.getBusinessBasics().first()
         if (businessBasics is Resource.Error)
             return Resource.Error(resId = R.string.get_business_error)
 
-        val sale = salesRepository.getPendingSale().first()
-        if (sale is Resource.Error) return Resource.Error()
-
-
+        val sale = salesRepository.getSale(saleId)
         if (sale is Resource.Error || sale.data == null)
             return Resource.Error(resId = R.string.get_sales_error)
 
-        val products = getSelectedProductsUseCase().first()
-        if (businessBasics is Resource.Error)
-            return Resource.Error(resId = R.string.get_products_error)
+        val products = sale.data.selectedProducts
 
-        val clientName = sale.data.clientName
+        val client = clientsRepository.getClientByRemoteId(sale.data.clientId)
+
+
+        if (client is Resource.Error || client.data == null)
+            return Resource.Error(resId = R.string.get_clients_error)
+
+        var clientName = client.data.name?.let{ NameFormat.format(it.trim()) }?:""
+        client.data.tradeName?.let {
+            if (it.isNotEmpty()) {
+                clientName = if (clientName.isNotEmpty())
+                    "${NameFormat.format(it)} ($clientName)"
+                else
+                    NameFormat.format(it)
+            }
+        }
         val subtotal = sale.data.subtotal
         val taxes = sale.data.IVA.plus(sale.data.IEPS)
         val collected = sale.data.collected
@@ -53,6 +61,7 @@ class GetReceiptToPrint(
             PaymentMethod.Credit -> "CREDITO"
             PaymentMethod.Cash -> "EFECTIVO"
             PaymentMethod.Debit -> "DEBITO"
+            PaymentMethod.Transfer -> "TRANSFERENCIA ELECTRÓNICA"
         }
 
         val printables = ArrayList<Printable>().apply {
@@ -92,8 +101,18 @@ class GetReceiptToPrint(
 
             add(
                 TextPrintable.Builder()
+                    .setText("${businessBasics.data?.storeName?.uppercase()?.withOutAccent()}")
+                    .setLineSpacing(5)
+                    .setAlignment(DefaultPrinter.ALIGNMENT_CENTER)
+                    .setEmphasizedMode(DefaultPrinter.EMPHASIZED_MODE_BOLD)
+                    .setNewLinesAfter(1)
+                    .build()
+            )
+
+            add(
+                TextPrintable.Builder()
                     .setText(
-                        DateFormat.getString(
+                        DateFormat.format(
                             System.currentTimeMillis(),
                             "dd/MM/yyyy hh:mm a"
                         ).uppercase()
@@ -136,9 +155,12 @@ class GetReceiptToPrint(
             val charsLengthFixed = 22
             val priceLength = 10
             var totalUnits = 0
-            products.data?.forEach {
-                totalUnits += it.selectedUnits
-                val productStr = "${it.selectedUnits.toString().padEnd(3)}${it.name}"
+            products.forEach {
+                val product = productsRepository.getProductByRemoteId(it.key.toLong()).data
+                val name = product?.name?:""
+                val price = product?.price?:0F
+                totalUnits += it.value
+                val productStr = "${it.value.toString().padEnd(3)}${name}"
                     .uppercase().withOutAccent()
                 var count = 0
                 var newLines = 1
@@ -164,7 +186,7 @@ class GetReceiptToPrint(
                 }
                 add(
                     TextPrintable.Builder()
-                        .setText("$${it.price * it.selectedUnits}".padStart(priceLength))
+                        .setText("$${price * it.value}".padStart(priceLength))
                         .setLineSpacing(5)
                         .setEmphasizedMode(DefaultPrinter.EMPHASIZED_MODE_BOLD)
                         .setNewLinesAfter(1)

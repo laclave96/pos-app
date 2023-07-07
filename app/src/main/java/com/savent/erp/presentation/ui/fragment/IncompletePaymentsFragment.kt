@@ -6,6 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,13 +15,16 @@ import com.savent.erp.R
 import com.savent.erp.data.remote.model.DebtPayment
 import com.savent.erp.databinding.FragmentIncompletePaymentsBinding
 import com.savent.erp.presentation.ui.CustomSnackBar
-import com.savent.erp.presentation.ui.DebtDialog
+import com.savent.erp.presentation.ui.dialog.DebtDialog
 import com.savent.erp.presentation.ui.adapters.IncompletePaymentsAdapter
 import com.savent.erp.presentation.viewmodel.DebtsViewModel
 import com.savent.erp.utils.DateFormat
 import com.savent.erp.utils.DateTimeObj
 import com.savent.erp.utils.PaymentMethod
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 // TODO: Rename parameter arguments, choose names that match
@@ -39,8 +44,9 @@ class IncompletePaymentsFragment : Fragment(), IncompletePaymentsAdapter.OnPayCl
     private lateinit var incompletePaymentsAdapter: IncompletePaymentsAdapter
     private var debtDialog: DebtDialog? = null
     private var saleId: Int = 0
+    private var saleDateTime = ""
     private var debt: Float = 0F
-    private var incompletePaymentId: Int = 0
+    private var defaultJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,13 +71,23 @@ class IncompletePaymentsFragment : Fragment(), IncompletePaymentsAdapter.OnPayCl
     }
 
     private fun initEvents() {
+
+        binding.refreshLayout.setOnRefreshListener {
+            defaultJob?.cancel()
+            defaultJob = lifecycleScope.launch(Dispatchers.IO) {
+                if (debtsViewModel.isInternetAvailable())
+                    debtsViewModel.syncDebtIOData()
+            }
+
+        }
+
         binding.backButton.setOnClickListener {
             debtsViewModel.onBackPressed()
         }
     }
 
     private fun setupRecyclerView() {
-        incompletePaymentsAdapter = IncompletePaymentsAdapter()
+        incompletePaymentsAdapter = IncompletePaymentsAdapter(context)
         incompletePaymentsAdapter.setOnPayClickListener(this)
         val recyclerView = binding.incompletePaymentsRecycler
         recyclerView.layoutManager = LinearLayoutManager(context)
@@ -85,22 +101,29 @@ class IncompletePaymentsFragment : Fragment(), IncompletePaymentsAdapter.OnPayCl
         debtsViewModel.incompletePayments.observe(this) {
             incompletePaymentsAdapter.setData(it)
         }
+
+        debtsViewModel.loading.observe(this){
+            binding.refreshLayout.isRefreshing = it
+        }
+
         lifecycleScope.launchWhenCreated {
-            debtsViewModel.uiEvent.collectLatest { uiEvent ->
-                when (uiEvent) {
-                    is DebtsViewModel.UiEvent.ShowMessage -> {
-                        try {
-                            CustomSnackBar.make(
-                                binding.root,
-                                getString(uiEvent.resId ?: R.string.unknown_error),
-                                CustomSnackBar.LENGTH_LONG
-                            ).show()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
+            debtsViewModel.uiEvent.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .collectLatest { uiEvent ->
+                    when (uiEvent) {
+                        is DebtsViewModel.UiEvent.ShowMessage -> {
+                            try {
+                                CustomSnackBar.make(
+                                    binding.root,
+                                    getString(uiEvent.resId ?: R.string.unknown_error),
+                                    CustomSnackBar.LENGTH_LONG
+                                ).show()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
+                        else -> {}
                     }
                 }
-            }
         }
     }
 
@@ -125,10 +148,10 @@ class IncompletePaymentsFragment : Fragment(), IncompletePaymentsAdapter.OnPayCl
             }
     }
 
-    override fun onPayClick(incompletePaymentId: Int, saleId: Int, debt: Float) {
-        this.incompletePaymentId = incompletePaymentId
+    override fun onPayClick(saleId: Int, debt: Float, dateTime: String) {
         this.saleId = saleId
         this.debt = debt
+        saleDateTime = dateTime
 
         debtDialog = context?.let { DebtDialog(it, debt) }
         debtDialog?.setOnPayClickListener(this)
@@ -139,17 +162,22 @@ class IncompletePaymentsFragment : Fragment(), IncompletePaymentsAdapter.OnPayCl
         val timestamp = System.currentTimeMillis();
         debtsViewModel.payDebt(
             DebtPayment(
+                Integer.MAX_VALUE,
                 saleId,
-                debtsViewModel.clientId.value?:0,
+                debtsViewModel.clientId.value ?: 0,
                 DateTimeObj(
-                    DateFormat.getString(timestamp, "yyyy-MM-dd"),
-                    DateFormat.getString(timestamp, "HH:mm")
+                    saleDateTime,
+                    DateFormat.format(System.currentTimeMillis(), "HH:mm:ss.SSS")
                 ),
-                debt,
+                DateTimeObj(
+                    DateFormat.format(timestamp, "yyyy-MM-dd"),
+                    DateFormat.format(timestamp, "HH:mm:ss.SSS")
+                ),
+                debt - collect,
                 collect,
                 paymentMethod
             ),
-            incompletePaymentId
+            saleId
         )
         debtDialog?.dismiss()
     }

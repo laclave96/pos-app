@@ -13,7 +13,7 @@ interface IncompletePaymentApiService {
         @Query("businessId") businessId: Int,
         @Query("storeId") storeId: Int,
         @Query("clientId") clientId: Int?,
-        @Query("featureName") featureName: String
+        @Query("companyId") companyId: Int
     ): Response<List<IncompletePayment>>
 
 

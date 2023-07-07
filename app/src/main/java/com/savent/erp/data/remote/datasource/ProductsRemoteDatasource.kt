@@ -9,10 +9,8 @@ interface ProductsRemoteDatasource {
 
     suspend fun getProducts(
         storeId: Int,
-        clientId: Int,
-        featureName: String,
-        filter: String,
-        loadDiscounts: Boolean
+        companyId: Int,
+        filter: String
     ):
             Resource<List<Product>>
 

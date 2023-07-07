@@ -28,6 +28,12 @@ class NetworkConnectivityObserver(context: Context) : ConnectivityObserver {
     @SuppressLint("NewApi")
     override fun observe(): Flow<ConnectivityObserver.Status> {
         return callbackFlow {
+
+            if(isCurrentOnline())
+                launch { send(ConnectivityObserver.Status.Available) }
+            else
+                launch { send(ConnectivityObserver.Status.Unavailable) }
+
             val callback = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     super.onAvailable(network)
@@ -57,7 +63,17 @@ class NetworkConnectivityObserver(context: Context) : ConnectivityObserver {
 
             awaitClose { connectivityManager.unregisterNetworkCallback(callback) }
         }
+    }
 
+    private fun isCurrentOnline(): Boolean{
+        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            ?: return false
 
+        if(capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+            || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+            || capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET))
+            return true
+
+        return false
     }
 }

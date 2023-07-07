@@ -7,7 +7,6 @@ class Product(
     val description: String?,
     val image: String?,
     val price: Float,
-    val discounts: Float?,
     val IEPS: Float?,
     val IVA: Float?,
     val units: Int?,

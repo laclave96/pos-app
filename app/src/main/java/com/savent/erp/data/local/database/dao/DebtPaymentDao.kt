@@ -7,9 +7,12 @@ import kotlinx.coroutines.flow.Flow
 interface DebtPaymentDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDebtPayments(debtPayments: List<DebtPaymentEntity>): List<Long>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDebtPayment(debtPayment: DebtPaymentEntity): Long
 
-    @Query("SELECT * FROM debt_payments ORDER BY date_timestamp DESC")
+    @Query("SELECT * FROM debt_payments ORDER BY remote_id DESC")
     fun getDebtPayments(): Flow<List<DebtPaymentEntity>?>
 
     @Update(onConflict = OnConflictStrategy.REPLACE)

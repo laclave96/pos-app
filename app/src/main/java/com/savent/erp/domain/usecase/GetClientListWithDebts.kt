@@ -1,12 +1,9 @@
 package com.savent.erp.domain.usecase
 
-import android.util.Log
-import com.google.gson.Gson
 import com.savent.erp.R
 import com.savent.erp.data.local.model.IncompletePaymentEntity
 import com.savent.erp.domain.repository.ClientsRepository
 import com.savent.erp.domain.repository.IncompletePaymentRepository
-import com.savent.erp.presentation.ui.model.ClientItem
 import com.savent.erp.presentation.ui.model.ClientWithDebtItem
 import com.savent.erp.utils.Resource
 import kotlinx.coroutines.flow.*
@@ -25,16 +22,16 @@ class GetClientListWithDebts(
 
                 clients.data.forEach {
                     var debt = 0F
-                    val clientId = clientsRepository.getClient(it.localId).data?.remoteId?:0
+                    val clientRemoteId = clientsRepository.getClient(it.localId).data?.remoteId?:0
                     payments.data.forEach { it1 ->
-                        if (it1.clientId == clientId) {
+                        if (it1.clientId == clientRemoteId) {
                             debt += it1.total - it1.collected
                         }
                     }
 
                     if (debt > 0)
                         clientsWithDebts.add(ClientWithDebtItem(
-                            clientId, it.name, it.image, it.address, debt
+                            clientRemoteId, it.name, it.image, it.address, debt
                         ))
 
                 }

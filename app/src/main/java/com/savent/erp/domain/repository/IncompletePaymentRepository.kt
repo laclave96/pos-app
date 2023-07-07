@@ -13,10 +13,10 @@ interface IncompletePaymentRepository {
 
     fun getIncompletePayments(): Flow<Resource<List<IncompletePaymentEntity>>>
 
-    suspend fun getIncompletePayment(id: Int): Resource<IncompletePaymentEntity>
+    suspend fun getIncompletePayment(saleId: Int): Resource<IncompletePaymentEntity>
 
     suspend fun updateIncompletePayment(incompletePayment: IncompletePaymentEntity): Resource<Int>
 
-    suspend fun fetchIncompletePayments(businessId: Int, storeId: Int, featureName: String):
+    suspend fun fetchIncompletePayments(businessId: Int, storeId: Int, companyId: Int):
             Resource<Int>
 }

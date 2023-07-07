@@ -16,7 +16,7 @@ class GetIncompletePaymentsUseCase(
 ) {
     suspend operator fun invoke(clientId: Int): Flow<Resource<List<IncompletePaymentItem>>> = flow {
         incompletePaymentRepository.getIncompletePayments(clientId).onEach {
-            if (it is Resource.Error) {
+            if (it is Resource.Error || it.data == null) {
                 emit(
                     Resource.Error(
                         resId = R.string.get_incomplete_payments_error
@@ -24,9 +24,9 @@ class GetIncompletePaymentsUseCase(
                 )
                 return@onEach
             }
-            val incompletePayments: List<IncompletePaymentItem> = it.data?.filter { entity ->
+            val incompletePayments: List<IncompletePaymentItem> = it.data.filter { entity ->
                entity.collected < entity.total
-            }?.map { it1 -> mapToUiItem(it1) } ?: listOf()
+            }.map { it1 -> mapToUiItem(it1) }
 
             emit(Resource.Success(incompletePayments))
 
@@ -35,7 +35,7 @@ class GetIncompletePaymentsUseCase(
     }
 
     private fun mapToUiItem(entity: IncompletePaymentEntity): IncompletePaymentItem {
-        val time = DateFormat.getString(entity.dateTimestamp, "hh:mm a")
+        val time = DateFormat.format(entity.dateTimestamp, "yyyy-MM-dd")
         return IncompletePaymentItem(
             entity.id,
             entity.saleId,

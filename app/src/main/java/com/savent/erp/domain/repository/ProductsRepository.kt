@@ -13,16 +13,16 @@ interface ProductsRepository {
 
     suspend fun getProduct(id: Int): Resource<ProductEntity>
 
+    suspend fun getProductByRemoteId(remoteId: Long): Resource<ProductEntity>
+
     fun getProducts(): Flow<Resource<List<ProductEntity>>>
 
     fun getProducts(query: String): Flow<Resource<List<ProductEntity>>>
 
     suspend fun fetchProducts(
         storeId: Int,
-        clientId: Int,
-        featureName: String,
-        filter: String,
-        loadDiscounts: Boolean
+        companyId: Int,
+        filter: String
     ): Resource<Int>
 
     suspend fun updateProduct(product: Product): Resource<Int>

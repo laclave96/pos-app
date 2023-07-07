@@ -15,18 +15,18 @@ class SalesRemoteDatasourceImpl(private val saleApiService: SaleApiService) :
         sellerId: Int,
         storeId: Int,
         sale: Sale,
-        featureName: String
+        companyId: Int
     ):
             Resource<Int> {
         try {
-            //Log.d("log_","insertSale"+ Gson().toJson(sale))
+            //Log.d("log_",Gson().toJson(sale))
             val response =
                 saleApiService.insertSale(
                     businessId,
                     sellerId,
                     storeId,
                     Gson().toJson(sale),
-                    featureName
+                    companyId
                 )
             //Log.d("log_",response.toString())
             if (response.isSuccessful)
@@ -41,14 +41,13 @@ class SalesRemoteDatasourceImpl(private val saleApiService: SaleApiService) :
 
     override suspend fun getSales(
         businessId: Int,
-        sellerId: Int,
         storeId: Int,
         date: String,
-        featureName: String
+        companyId: Int
     ):
             Resource<List<Sale>> {
         try {
-            val response = saleApiService.getSales(businessId, sellerId, storeId, date, featureName)
+            val response = saleApiService.getSales(businessId, storeId, date, companyId)
             if (response.isSuccessful)
                 return Resource.Success(response.body())
             return Resource.Error(resId = R.string.get_sales_error)

@@ -3,11 +3,12 @@ package com.savent.erp.data.local.datasource
 import com.savent.erp.R
 import com.savent.erp.data.local.database.dao.ClientDao
 import com.savent.erp.data.local.model.ClientEntity
+import com.savent.erp.utils.DateFormat
 import com.savent.erp.utils.PendingRemoteAction
 import com.savent.erp.utils.Resource
 import kotlinx.coroutines.flow.*
 
-class ClientsLocalDatasourceImpl(
+class  ClientsLocalDatasourceImpl(
     private val clientDao: ClientDao
 ) : ClientsLocalDatasource {
 
@@ -32,9 +33,19 @@ class ClientsLocalDatasourceImpl(
         return try {
             Resource.Success(clientDao.getClient(id))
         } catch (e: Exception) {
+            //Log.d("log_", e.toString())
             Resource.Error(resId = R.string.get_clients_error)
         }
 
+    }
+
+    override suspend fun getClientByRemoteId(remoteId: Int): Resource<ClientEntity> {
+        return try {
+            Resource.Success(clientDao.getClientByRemoteId(remoteId))
+        } catch (e: Exception) {
+            ///Log.d("log_", e.toString())
+            Resource.Error(resId = R.string.get_clients_error)
+        }
     }
 
     override fun getClients(): Flow<Resource<List<ClientEntity>>> = flow {
@@ -97,7 +108,13 @@ class ClientsLocalDatasourceImpl(
                     it.postalCode,
                     it.city,
                     it.state,
-                    it.country
+                    it.country,
+                    it.creditLimit,
+                    DateFormat.format(
+                        it.dateTimestamp ?: System.currentTimeMillis(),
+                        "yyyy-MM-dd"
+                    ),
+                    it.location
                 ).hashCode()
                 val hash2 = listOf(
                     client.remoteId,
@@ -112,7 +129,13 @@ class ClientsLocalDatasourceImpl(
                     client.postalCode,
                     client.city,
                     client.state,
-                    client.country
+                    client.country,
+                    client.creditLimit,
+                    DateFormat.format(
+                        client.dateTimestamp ?: System.currentTimeMillis(),
+                        "yyyy-MM-dd"
+                    ),
+                    client.location
                 ).hashCode()
 
                 if (hash1 == hash2) return true
@@ -150,7 +173,6 @@ class ClientsLocalDatasourceImpl(
         }
         return newClients
     }
-
 
 
 }

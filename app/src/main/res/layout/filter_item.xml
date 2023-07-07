@@ -17,7 +17,7 @@
         android:id="@+id/filter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/nunito_sans_semibold"
+        android:fontFamily="@font/comforta_semibold"
         android:text="Plan de Carga"
         android:textColor="@color/black"
         android:textSize="21sp"

@@ -1,23 +1,28 @@
 package com.savent.erp.presentation.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.savent.erp.ConnectivityObserver
 import com.savent.erp.MyApplication
 import com.savent.erp.R
 import com.savent.erp.data.local.datasource.AppPreferencesLocalDatasource
+import com.savent.erp.data.local.datasource.ClientsLocalDatasource
 import com.savent.erp.data.local.model.AppPreferences
 import com.savent.erp.data.local.model.BusinessBasicsLocal
+import com.savent.erp.data.remote.datasource.ClientsRemoteDatasource
 import com.savent.erp.data.remote.model.Client
 import com.savent.erp.domain.repository.BusinessBasicsRepository
 import com.savent.erp.domain.usecase.*
 import com.savent.erp.presentation.ui.model.ClientError
 import com.savent.erp.presentation.ui.model.ClientItem
+import com.savent.erp.utils.PendingRemoteAction
 import com.savent.erp.utils.Resource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -30,10 +35,11 @@ class ClientsViewModel(
     private val getClientListUseCase: GetClientListUseCase,
     private val reloadClientsUseCase: ReloadClientsUseCase,
     private val removeAllClientsUseCase: RemoveAllClientsUseCase,
-    private val createNewClientUseCase: CreateNewClientUseCase,
+    private val saveNewClientUseCase: SaveNewClientUseCase,
     private val addClientToSaleUseCase: AddClientToSaleUseCase,
     private val validateClientUseCase: ValidateClientUseCase,
-    private val remoteClientSyncFromLocalUseCase: RemoteClientSyncFromLocalUseCase,
+    private val clientsLocalDatasource: ClientsLocalDatasource,
+    private val clientsRemoteDatasource: ClientsRemoteDatasource
 ) : ViewModel() {
 
     private val _loading = MutableLiveData(false)
@@ -59,35 +65,37 @@ class ClientsViewModel(
     val uiEvent = _uiEvent.asSharedFlow()
 
     sealed class UiEvent {
-        data class ShowMessage(val resId: Int? = null) : UiEvent()
+        data class ShowMessage(val resId: Int? = null, val message: String? = null) : UiEvent()
         data class SaveClient(val success: Boolean = false) : UiEvent()
         data class Continue(val available: Boolean = false) : UiEvent()
     }
 
     private var loadDataJob: Job? = null
     private var loadClientsJob: Job? = null
+    private var syncIODataJob: Job? = null
     private var reloadClientsJob: Job? = null
     private var createPendingSaleJob: Job? = null
     private var addClientJob: Job? = null
+    private var updateClientJob: Job? = null
     private var networkObserverJob: Job? = null
     private var changeClientsFilterJob: Job? = null
     private var defaultJob: Job? = null
 
     init {
         loadData()
-        createPendingSale()
         observeNetworkChange()
+        createPendingSale()
+
     }
 
     private fun observeNetworkChange() {
         networkObserverJob?.cancel()
         networkObserverJob = viewModelScope.launch(Dispatchers.IO) {
-            (myApplication as MyApplication).networkStatus.collectLatest {
+            _networkStatus.postValue((myApplication as MyApplication).currentNetworkStatus)
+            myApplication.networkStatus.collectLatest {
                 _networkStatus.postValue(it)
                 if (it == ConnectivityObserver.Status.Available)
-                    if (isInternetAvailable()) {
-                        fetchClientsFromNetwork(_appPreferences.value?.clientsFilter?:"")
-                    }
+                    syncClientsIOData()
             }
         }
 
@@ -97,11 +105,11 @@ class ClientsViewModel(
         loadDataJob?.cancel()
         loadDataJob = viewModelScope.launch(Dispatchers.IO) {
             loadClients()
-            async {loadAppPreferences()}
+            async { loadAppPreferences() }
             loadBusinessBasics()
             delay(1000)
-            if(isInternetAvailable())
-                fetchClientsFromNetwork(_appPreferences.value?.clientsFilter?:"")
+            if (isInternetAvailable())
+                syncClientsIOData()
         }
     }
 
@@ -117,21 +125,79 @@ class ClientsViewModel(
             _businessBasics = businessBasics.data
     }
 
-    private fun fetchClientsFromNetwork(clientsFilter: String) {
-        reloadClientsJob?.cancel()
-        reloadClientsJob = viewModelScope.launch(Dispatchers.IO) {
-            reloadClientsUseCase(
-                _businessBasics!!.sellerId,
-                _businessBasics!!.storeId,
-                _businessBasics!!.featureName,
-                clientsFilter
-            )
-            _loading.postValue(false)
+    fun syncClientsIOData() {
+        _loading.postValue(true)
+        syncIODataJob?.cancel()
+        syncIODataJob = viewModelScope.launch(Dispatchers.IO) {
+            when (val result = RemoteClientSyncFromLocalUseCase.execute(
+                _businessBasics?.sellerId ?: 0,
+                _businessBasics?.storeId ?: 0,
+                _businessBasics?.companyId ?: 1
+            )) {
+                is Resource.Error -> {
+                    _loading.postValue(false)
+                    _uiEvent.emit(
+                        UiEvent.ShowMessage(result.resId, result.message)
+                    )
+
+                }
+                is Resource.Success -> {
+                    fetchClientsFromNetwork(_appPreferences.value?.clientsFilter ?: "")
+                }
+                else -> {
+                    _loading.postValue(false)
+                }
+            }
         }
     }
 
     suspend fun isCreateClientAvailable(): Boolean {
         return businessBasicsRepository.getBusinessBasics().first().data?.sellerLevel!! > 2
+    }
+
+    fun changeClientsFilter(clientsFilter: String) {
+        changeClientsFilterJob?.cancel()
+        changeClientsFilterJob = viewModelScope.launch(Dispatchers.IO) {
+
+            if (appPreferencesLocalDatasource.insertOrUpdateAppPreferences(
+                    _appPreferences.value!!.copy(
+                        clientsFilter = clientsFilter
+                    )
+                ) is Resource.Success
+            )
+                _appPreferences.postValue(_appPreferences.value!!.copy(clientsFilter = clientsFilter))
+
+            if (isInternetAvailable()) {
+                _loading.postValue(true)
+                removeAllClientsUseCase()
+                fetchClientsFromNetwork(clientsFilter)
+            }
+
+        }
+
+    }
+
+    private fun fetchClientsFromNetwork(clientsFilter: String) {
+        reloadClientsJob?.cancel()
+        reloadClientsJob = viewModelScope.launch(Dispatchers.IO) {
+            when (val result = reloadClientsUseCase(
+                _businessBasics!!.sellerId,
+                _businessBasics!!.storeId,
+                _businessBasics!!.companyId,
+                clientsFilter
+            )) {
+                is Resource.Error -> {
+                    _loading.postValue(false)
+                    _uiEvent.emit(
+                        UiEvent.ShowMessage(result.resId, result.message)
+                    )
+
+                }
+                else -> {
+                    _loading.postValue(false)
+                }
+            }
+        }
     }
 
     fun loadClients(query: String = "") {
@@ -196,31 +262,47 @@ class ClientsViewModel(
                 }
 
             }
-            when (val result = createNewClientUseCase(client)) {
+            if (!isInternetAvailable()) {
+                _uiEvent.emit(UiEvent.ShowMessage(R.string.internet_error))
+                return@launch
+            }
+            when (val result = clientsRemoteDatasource.insertClient(
+                _businessBasics?.sellerId ?: 0,
+                _businessBasics?.storeId ?: 0,
+                client,
+                _businessBasics?.companyId ?: 0
+            )) {
                 is Resource.Loading -> {
                 }
                 is Resource.Success -> {
-                    coroutineScope {
-                        async {
-                            businessBasicsRepository.getBusinessBasics().first().data?.let {
-                                remoteClientSyncFromLocalUseCase(
-                                    it.sellerId,
-                                    it.storeId,
-                                    it.featureName
-                                )
+                    when (val result1 = saveNewClientUseCase(client.copy(id = result.data ?: 0))) {
+                        is Resource.Loading -> {
+                        }
+                        is Resource.Success -> {
+                            coroutineScope {
+                                _loading.postValue(false)
+                                _uiEvent.emit(UiEvent.SaveClient(true))
                             }
-                        }.await()
-                        _loading.postValue(false)
-                        _uiEvent.emit(UiEvent.SaveClient(true))
-                    }
 
+                        }
+                        is Resource.Error -> {
+                            _loading.postValue(false)
+                            _uiEvent.emit(UiEvent.SaveClient(false))
+                            _uiEvent.emit(
+                                UiEvent.ShowMessage(
+                                    result1.resId, result1.message
+                                )
+                            )
+                        }
+
+                    }
                 }
                 is Resource.Error -> {
                     _loading.postValue(false)
                     _uiEvent.emit(UiEvent.SaveClient(false))
                     _uiEvent.emit(
                         UiEvent.ShowMessage(
-                            result.resId ?: R.string.unknown_error
+                            result.resId, result.message
                         )
                     )
                 }
@@ -244,10 +326,10 @@ class ClientsViewModel(
                     )
                 }
 
+                else -> {}
             }
         }
     }
-
 
     fun await() {
         defaultJob?.cancel()
@@ -262,8 +344,51 @@ class ClientsViewModel(
         }
     }
 
-    private suspend fun isInternetAvailable(): Boolean {
+    fun updateClientLocation(latLng: LatLng, id: Int) {
+        _loading.postValue(true)
+        updateClientJob?.cancel()
+        updateClientJob = viewModelScope.launch(Dispatchers.IO) {
+            clientsLocalDatasource.getClient(id).let { clientEntity ->
+                if (clientEntity is Resource.Success) {
+                    val client = clientEntity.data
+                    client?.copy(
+                        location = latLng,
+                        dateTimestamp = System.currentTimeMillis(),
+                        pendingRemoteAction = PendingRemoteAction.UPDATE
+                    )?.let {
+                        when (val result = clientsLocalDatasource.updateClient(it)) {
+                            is Resource.Loading -> {
+                            }
+                            is Resource.Success -> {
+                                _loading.postValue(false)
+                            }
+                            is Resource.Error -> {
+                                _loading.postValue(false)
+                                _uiEvent.emit(
+                                    UiEvent.ShowMessage(
+                                        result.resId ?: R.string.unknown_error
+                                    )
+                                )
+                            }
+
+                        }
+                    }
+                } else {
+                    _loading.postValue(false)
+                    _uiEvent.emit(
+                        UiEvent.ShowMessage(
+                            R.string.get_clients_error
+                        )
+                    )
+                }
+            }
+
+        }
+    }
+
+    suspend fun isInternetAvailable(): Boolean {
         if (_networkStatus.value != ConnectivityObserver.Status.Available) {
+            _loading.postValue(false)
             _uiEvent.emit(UiEvent.ShowMessage(resId = R.string.internet_error))
             return false
         }

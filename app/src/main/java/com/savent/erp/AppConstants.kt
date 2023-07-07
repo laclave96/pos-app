@@ -1,6 +1,7 @@
 package com.savent.erp
 
 import android.Manifest
+import com.savent.erp.data.remote.service.ProviderApiService
 
 object AppConstants {
     const val EMPTY_JSON_STRING = "[]"
@@ -9,12 +10,22 @@ object AppConstants {
     const val BUSINESS_PREFERENCES = "business_basics_preferences"
     const val PENDING_SALE_PREFERENCES = "pending_sale_preferences"
     const val APP_DATABASE_NAME = "app_database"
-    const val SAVENT_POS_API_BASE_URL = "your_base_url"
-    const val CLIENTS_API_PATH = "pos/api/clients/"
-    const val PRODUCTS_API_PATH = "pos/api/products/"
-    const val BUSINESS_API_PATH = "pos/api/business/"
-    const val SALES_API_PATH = "pos/api/sales/"
-    const val INCOMPLETE_PAYMENTS_API_PATH = "pos/api/incomplete_payments/"
+    const val MAPS_API_KEY = "you_maps_key"
+    const val SAVENT_POS_API_BASE_URL = "your_api_base_url"
+    const val CLIENTS_API_PATH = "clients/"
+    const val PRODUCTS_API_PATH = "products/"
+    const val DISCOUNTS_API_PATH = "discounts/"
+    const val BUSINESS_API_PATH = "business/"
+    const val SALES_API_PATH = "sales/"
+    const val MOVEMENTS_API_PATH = "movements/"
+    const val MOVEMENT_REASONS_API_PATH = "movements/reasons"
+    const val PROVIDERS_API_PATH = "providers/"
+    const val EMPLOYEES_API_PATH = "employees/"
+    const val PURCHASES_API_PATH = "purchases/"
+    const val INCOMPLETE_PAYMENTS_API_PATH = "incomplete_payments/"
+    const val DEBT_PAYMENTS_API_PATH = "debt_payments/"
+    const val COMPANIES_API_PATH = "companies/"
+    const val STORES_API_PATH = "stores/"
     const val AUTHORIZATION = "your_auth"
     val LOCATION_PERMISSIONS = arrayOf(
         Manifest.permission.ACCESS_COARSE_LOCATION,

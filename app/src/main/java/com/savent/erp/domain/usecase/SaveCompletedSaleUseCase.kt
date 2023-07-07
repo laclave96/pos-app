@@ -1,8 +1,6 @@
 package com.savent.erp.domain.usecase
 
 
-import android.util.Log
-import com.google.gson.Gson
 import com.savent.erp.R
 import com.savent.erp.data.local.model.ProductEntity
 import com.savent.erp.data.local.model.SaleEntity
@@ -21,12 +19,13 @@ class SaveCompletedSaleUseCase(
 ) {
 
     suspend operator fun invoke(): Resource<Int> {
-        val sale = salesRepository.getPendingSale().first()
+        val pendingSale = salesRepository.getPendingSale().first()
 
-        if (sale is Resource.Success) {
-            sale.data?.let {
+        if (pendingSale is Resource.Success) {
+            pendingSale.data?.let {
                 val client = clientRepository.getClient(it.clientId)
                 val updatedProducts = mutableListOf<ProductEntity>()
+                val selectedProducts = HashMap<Int, Int>()
 
                 it.selectedProducts.entries.forEach { it1 ->
                     val product = productsRepository.getProduct(it1.key)
@@ -34,6 +33,7 @@ class SaveCompletedSaleUseCase(
                         return Resource.Error(resId = product.resId)
 
                     product.data?.let { productEntity ->
+                        selectedProducts[productEntity.remoteId] = it1.value
                         productEntity.units = productEntity.units - it1.value
                         productEntity.pendingRemoteAction = PendingRemoteAction.UPDATE
                         updatedProducts.add(productEntity)
@@ -41,17 +41,17 @@ class SaveCompletedSaleUseCase(
 
                 }
                 var name = NameFormat.format(client.data?.name + " ${client.data?.paternalName} " +
-                        "${client.data?.maternalName}");
+                        "${client.data?.maternalName}")
                 client.data?.tradeName?.let { it1-> if(it1.isNotEmpty())
                     name = "${NameFormat.format(it1)} ($name)" }
 
                 val sale = SaleEntity(
                     0,
-                    it.id,
-                    it.clientId,
+                    Integer.MAX_VALUE,
+                    client.data?.remoteId ?: 0,
                     name,
                     System.currentTimeMillis(),
-                    it.selectedProducts,
+                    selectedProducts,
                     it.subtotal,
                     it.discounts,
                     it.IVA,
@@ -71,7 +71,7 @@ class SaveCompletedSaleUseCase(
             }
 
         }
-        return Resource.Error(resId = sale.resId)
+        return Resource.Error(resId = pendingSale.resId)
     }
 
 }

@@ -13,14 +13,17 @@ interface SalesRepository {
 
     suspend fun insertSales(sales: List<Sale>): Resource<Int>
 
+    suspend fun getSale(id: Int): Resource<SaleEntity>
+
+    suspend fun getSaleByRemoteId(remoteId: Int): Resource<SaleEntity>
+
     fun getSales(): Flow<Resource<List<SaleEntity>>>
 
     suspend fun fetchSales(
         businessId: Int,
-        sellerId: Int,
         storeId: Int,
         date: String,
-        featureName: String
+        companyId: Int
     ): Resource<Int>
 
     suspend fun createPendingSale(): Resource<Int>

@@ -1,5 +1,6 @@
 package com.savent.erp.presentation.ui.adapters
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +13,7 @@ import com.savent.erp.R
 import com.savent.erp.presentation.ui.model.IncompletePaymentItem
 import com.savent.erp.utils.DecimalFormat
 
-class IncompletePaymentsAdapter
+class IncompletePaymentsAdapter(private val context: Context?)
     : RecyclerView.Adapter<IncompletePaymentsAdapter.IncompletePaymentsViewHolder>() {
 
     private val incompletePayments = ArrayList<IncompletePaymentItem>()
@@ -20,7 +21,7 @@ class IncompletePaymentsAdapter
     private var _payListener: OnPayClickListener? = null
 
     interface OnPayClickListener {
-        fun onPayClick(incompletePaymentId: Int, saleId: Int, debt: Float)
+        fun onPayClick(saleId: Int, debt: Float, dateTime: String)
     }
 
     fun setOnPayClickListener(listener: OnPayClickListener) {
@@ -41,17 +42,25 @@ class IncompletePaymentsAdapter
         val incompletePayment = incompletePayments[position]
         holder.date.text = incompletePayment.dateTime
         holder.articles.text = incompletePayment.productsUnits.toString()
-        holder.subtotal.text = DecimalFormat.format(incompletePayment.subtotal)
-        holder.taxes.text = DecimalFormat.format(incompletePayment.taxes)
-        holder.discounts.text = DecimalFormat.format(incompletePayment.discounts)
-        holder.toPay.text = DecimalFormat.format(incompletePayment.toPay)
-        holder.collected.text = DecimalFormat.format(incompletePayment.collected)
-        holder.debt.text = DecimalFormat.format(incompletePayment.debts)
+
+        holder.subtotal.text = context?.getString(R.string.price)
+            ?.format(DecimalFormat.format(incompletePayment.subtotal))
+        holder.taxes.text = context?.getString(R.string.price)
+            ?.format(DecimalFormat.format(incompletePayment.taxes))
+        holder.discounts.text = context?.getString(R.string.price)
+            ?.format(DecimalFormat.format(incompletePayment.discounts))
+        holder.toPay.text = context?.getString(R.string.price)
+            ?.format(DecimalFormat.format(incompletePayment.toPay))
+        holder.collected.text = context?.getString(R.string.price)
+            ?.format(DecimalFormat.format(incompletePayment.collected))
+        holder.debt.text = context?.getString(R.string.price)
+            ?.format(DecimalFormat.format(incompletePayment.debts))
+
         holder.payBtn.setOnClickListener {
             _payListener?.onPayClick(
-                incompletePayment.localId,
                 incompletePayment.saleId,
-                incompletePayment.debts
+                incompletePayment.debts,
+                incompletePayment.dateTime
             )
         }
 

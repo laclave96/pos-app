@@ -10,6 +10,8 @@ import retrofit2.http.Query
 interface BusinessApiService {
     @GET(AppConstants.BUSINESS_API_PATH)
     suspend fun getBusiness(
-        @Query("credentials") credentials: String
+        @Query("credentials") credentials: String,
+        @Query("storeId") storeId: Int,
+        @Query("companyId") companyId: Int
     ): Response<Business>
 }

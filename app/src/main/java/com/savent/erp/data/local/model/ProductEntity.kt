@@ -16,10 +16,11 @@ class ProductEntity(
     val description: String,
     val image: String?,
     val price: Float,
-    val discounts: Float,
     val IEPS: Float,
     val IVA: Float,
     var units: Int,
+    @ColumnInfo(name = "data_timestamp")
+    var dateTimestamp: Long,
     @ColumnInfo(name = "remote_action")
     var pendingRemoteAction: PendingRemoteAction
 ) {

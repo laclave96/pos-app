@@ -8,6 +8,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.Observer
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DefaultItemAnimator
@@ -16,8 +19,13 @@ import com.savent.erp.R
 import com.savent.erp.databinding.FragmentClientsWithDebtsBinding
 import com.savent.erp.presentation.ui.CustomSnackBar
 import com.savent.erp.presentation.ui.adapters.ClientsWithDebtsAdapter
+import com.savent.erp.presentation.ui.model.ClientDebt
 import com.savent.erp.presentation.viewmodel.DebtsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 
 // TODO: Rename parameter arguments, choose names that match
@@ -34,6 +42,7 @@ class ClientsWithDebtsFragment : Fragment(), ClientsWithDebtsAdapter.OnClickList
     private lateinit var binding: FragmentClientsWithDebtsBinding
     private val debtsViewModel: DebtsViewModel by sharedViewModel()
     private lateinit var clientsWithDebtsAdapter: ClientsWithDebtsAdapter
+    private var defaultJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,6 +81,15 @@ class ClientsWithDebtsFragment : Fragment(), ClientsWithDebtsAdapter.OnClickList
 
         })
 
+        binding.refreshLayout.setOnRefreshListener {
+            defaultJob?.cancel()
+            defaultJob = lifecycleScope.launch(Dispatchers.IO) {
+                if (debtsViewModel.isInternetAvailable())
+                    debtsViewModel.syncDebtIOData()
+            }
+
+        }
+
         binding.backButton.setOnClickListener {
             debtsViewModel.onBackPressed()
         }
@@ -92,22 +110,29 @@ class ClientsWithDebtsFragment : Fragment(), ClientsWithDebtsAdapter.OnClickList
         debtsViewModel.clients.observe(this) {
             clientsWithDebtsAdapter.setData(it)
         }
+
+        debtsViewModel.loading.observe(this){
+            binding.refreshLayout.isRefreshing = it
+        }
+
         lifecycleScope.launchWhenCreated {
-            debtsViewModel.uiEvent.collectLatest { uiEvent ->
-                when (uiEvent) {
-                    is DebtsViewModel.UiEvent.ShowMessage -> {
-                        try {
-                            CustomSnackBar.make(
-                                binding.root,
-                                getString(uiEvent.resId ?: R.string.unknown_error),
-                                CustomSnackBar.LENGTH_LONG
-                            ).show()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
+            debtsViewModel.uiEvent.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .collectLatest { uiEvent ->
+                    when (uiEvent) {
+                        is DebtsViewModel.UiEvent.ShowMessage -> {
+                            try {
+                                CustomSnackBar.make(
+                                    binding.root,
+                                    getString(uiEvent.resId ?: R.string.unknown_error),
+                                    CustomSnackBar.LENGTH_LONG
+                                ).show()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
+                        else -> {}
                     }
                 }
-            }
         }
     }
 
@@ -132,8 +157,8 @@ class ClientsWithDebtsFragment : Fragment(), ClientsWithDebtsAdapter.OnClickList
             }
     }
 
-    override fun onClick(clientId: Int, clientName: String) {
-        debtsViewModel.loadIncompletePayments(clientId, clientName)
+    override fun onClick(clientId: Int, clientDebt: ClientDebt) {
+        debtsViewModel.loadIncompletePayments(clientId, clientDebt)
         Navigation.findNavController(binding.root)
             .navigate(R.id.action_clientWithDebtsFragment_to_incompletePaymentsFragment)
     }

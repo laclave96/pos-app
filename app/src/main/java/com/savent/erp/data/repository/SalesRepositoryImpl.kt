@@ -2,21 +2,19 @@ package com.savent.erp.data.repository
 
 import com.savent.erp.data.local.datasource.PendingSaleLocalDatasource
 import com.savent.erp.data.local.datasource.SalesLocalDatasource
-import com.savent.erp.data.local.model.ProductEntity
 import com.savent.erp.data.local.model.SaleEntity
 import com.savent.erp.data.remote.datasource.SalesRemoteDatasource
-import com.savent.erp.data.remote.model.Product
 import com.savent.erp.data.remote.model.Sale
 import com.savent.erp.domain.repository.SalesRepository
 import com.savent.erp.utils.PaymentMethod
 import com.savent.erp.utils.PendingRemoteAction
 import com.savent.erp.utils.Resource
+import com.savent.erp.utils.toLong
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import java.text.SimpleDateFormat
-import java.util.*
 
 class SalesRepositoryImpl(
     private val localDatasource: SalesLocalDatasource,
@@ -35,6 +33,11 @@ class SalesRepositoryImpl(
             )
         })
 
+    override suspend fun getSale(id: Int): Resource<SaleEntity> =
+        localDatasource.getSale(id)
+
+    override suspend fun getSaleByRemoteId(remoteId: Int): Resource<SaleEntity> =
+        localDatasource.getSaleByRemoteId(remoteId)
 
     override fun getSales(): Flow<Resource<List<SaleEntity>>> = flow {
         localDatasource.getSales().onEach { emit(it) }.collect()
@@ -42,13 +45,12 @@ class SalesRepositoryImpl(
 
     override suspend fun fetchSales(
         businessId: Int,
-        sellerId: Int,
         storeId: Int,
         date: String,
-        featureName: String
+        companyId: Int
     ):
             Resource<Int> {
-        val response = remoteDatasource.getSales(businessId, sellerId, storeId, date, featureName)
+        val response = remoteDatasource.getSales(businessId, storeId, date, companyId)
         if (response is Resource.Success) {
             response.data?.let {
                 insertSales(it)
@@ -60,7 +62,6 @@ class SalesRepositoryImpl(
 
     override suspend fun createPendingSale(): Resource<Int> =
         pendingLocalDataSource.createPendingSale()
-
 
     override suspend fun addClientToPendingSale(clientId: Int, clientName: String): Resource<Int> =
         pendingLocalDataSource.addClientToPendingSale(clientId, clientName)
@@ -109,9 +110,7 @@ class SalesRepositoryImpl(
             sale.id,
             sale.clientId ?: 0,
             sale.clientName ?: "",
-            sale.dateTimestamp?.run {
-                SimpleDateFormat("yyyy-MM-dd HH:mm").parse("${this.date} ${this.hour}").time
-            }
+            sale.dateTimestamp?.toLong()
                 ?: System.currentTimeMillis(),
             sale.selectedProducts,
             sale.subtotal,

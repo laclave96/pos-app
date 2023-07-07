@@ -88,6 +88,7 @@ class MainActivity : AppCompatActivity() {
     fun goOn() {
         when (mainViewModel.navActualDestination.value) {
             R.id.checkoutFragment -> {
+                startActivity(Intent(this,LastSalesActivity::class.java))
                 finish()
             }
             R.id.addProductsFragment -> {

@@ -13,9 +13,11 @@ interface ClientsRepository {
 
     suspend fun getClient(id: Int): Resource<ClientEntity>
 
+    suspend fun getClientByRemoteId(remoteId: Int): Resource<ClientEntity>
+
     fun getClients(query: String): Flow<Resource<List<ClientEntity>>>
 
-    suspend fun fetchClients(sellerId: Int, storeId: Int?, featureName: String, category: String):
+    suspend fun fetchClients(sellerId: Int, storeId: Int?, companyId: Int, category: String):
             Resource<Int>
 
     suspend fun updateClient(client: Client): Resource<Int>

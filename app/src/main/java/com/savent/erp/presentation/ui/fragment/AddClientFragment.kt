@@ -4,9 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.maps.model.LatLng
 import com.savent.erp.AppConstants
@@ -14,6 +15,7 @@ import com.savent.erp.R
 import com.savent.erp.data.remote.model.Client
 import com.savent.erp.databinding.FragmentAddClientBinding
 import com.savent.erp.domain.usecase.LocationRequestUseCase
+import com.savent.erp.presentation.ui.dialog.StatesDialog
 import com.savent.erp.presentation.ui.CustomSnackBar
 import com.savent.erp.presentation.viewmodel.ClientsViewModel
 import com.savent.erp.presentation.viewmodel.MainViewModel
@@ -37,7 +39,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [AddClientFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class AddClientFragment : Fragment() {
+class AddClientFragment : Fragment(), StatesDialog.OnClickListener {
     private lateinit var binding: FragmentAddClientBinding
     private val mainViewModel: MainViewModel by sharedViewModel()
     private val clientsViewModel: ClientsViewModel by sharedViewModel()
@@ -68,14 +70,7 @@ class AddClientFragment : Fragment() {
     }
 
     private fun initDefaultStates() {
-        val arrayAdapter = context?.let {
-            ArrayAdapter<String>(
-                it,
-                R.layout.spinner_item,
-                resources.getStringArray(R.array.mexico_states)
-            )
-        }
-        binding.stateEdit.adapter = arrayAdapter
+        binding.stateEdit.text = resources.getStringArray(R.array.mexico_states)[0]
     }
 
     private fun initEvents() {
@@ -90,6 +85,12 @@ class AddClientFragment : Fragment() {
                 return@setOnClickListener
             }
             runLocationRequest()
+        }
+
+        binding.stateEdit.setOnClickListener {
+            val storesDialog = StatesDialog(context!!)
+            storesDialog.setOnClickListener(this)
+            storesDialog.show()
         }
 
         binding.backButton.setOnClickListener {
@@ -135,40 +136,42 @@ class AddClientFragment : Fragment() {
             binding.countryEdit.error = result.countryError?.let { getString(it) }
         }
 
-        lifecycleScope.launchWhenCreated{
-            clientsViewModel.uiEvent.collectLatest { uiEvent ->
-                when (uiEvent) {
-                    is ClientsViewModel.UiEvent.ShowMessage -> {
-                        CustomSnackBar.make(
-                            binding.root,
-                            getString(uiEvent.resId ?: R.string.unknown_error),
-                            CustomSnackBar.LENGTH_LONG
-                        ).show()
-                    }
-                    is ClientsViewModel.UiEvent.SaveClient -> {
-                        if (uiEvent.success) {
-                            mainViewModel.goOn()
+        lifecycleScope.launchWhenCreated {
+            clientsViewModel.uiEvent.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .collectLatest { uiEvent ->
+                    when (uiEvent) {
+                        is ClientsViewModel.UiEvent.ShowMessage -> {
+                            CustomSnackBar.make(
+                                binding.root,
+                                uiEvent.resId?.let { getString(uiEvent.resId) } ?: uiEvent.message
+                                ?: getString(R.string.unknown_error),
+                                CustomSnackBar.LENGTH_LONG
+                            ).show()
+                        }
+                        is ClientsViewModel.UiEvent.SaveClient -> {
+                            if (uiEvent.success) {
+                                mainViewModel.goOn()
+                            }
+                        }
+                        else -> {
                         }
                     }
-                    else -> {
-                    }
                 }
-            }
 
         }
 
-        lifecycleScope.launchWhenCreated{
-            mainViewModel.message.collectLatest { message ->
-                CustomSnackBar.make(
-                    binding.root,
-                    getString(message.resId ?: R.string.unknown_error),
-                    CustomSnackBar.LENGTH_LONG
-                ).show()
-            }
+        lifecycleScope.launchWhenCreated {
+            mainViewModel.message.flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .collectLatest { message ->
+                    CustomSnackBar.make(
+                        binding.root,
+                        getString(message.resId ?: R.string.unknown_error),
+                        CustomSnackBar.LENGTH_LONG
+                    ).show()
+                }
 
         }
     }
-
 
 
     private fun runLocationRequest() {
@@ -209,13 +212,13 @@ class AddClientFragment : Fragment() {
             binding.coloniaEdit.text.toString().trim(),
             binding.postalCodeEdit.text.toString().trim(),
             binding.cityEdit.text.toString().trim(),
-            resources.getStringArray(R.array.mexico_states)
-                    [binding.stateEdit.selectedItemPosition],
+            binding.stateEdit.text.toString().trim(),
             binding.countryEdit.text.toString().trim(),
             currentLatLong ?: LatLng(1.0, 1.0),
+            0F,
             DateTimeObj(
-                DateFormat.getString(time, "yyyy-MM-dd"),
-                DateFormat.getString(time, "HH:mm")
+                DateFormat.format(time, "yyyy-MM-dd"),
+                DateFormat.format(time, "HH:mm")
             )
         )
         clientsViewModel.saveNewClient(client)
@@ -247,6 +250,10 @@ class AddClientFragment : Fragment() {
                     putString(ARG_PARAM2, param2)
                 }
             }
+    }
+
+    override fun onClick(store: String) {
+        binding.stateEdit.text = store
     }
 
 

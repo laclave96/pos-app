@@ -14,7 +14,7 @@ interface IncompletePaymentsLocalDataSource {
 
     fun getIncompletePayments(clientId: Int): Flow<Resource<List<IncompletePaymentEntity>>>
 
-    suspend fun getIncompletePayment(id: Int): Resource<IncompletePaymentEntity>
+    suspend fun getIncompletePayment(saleId: Int): Resource<IncompletePaymentEntity>
 
     suspend fun updateIncompletePayment(incompletePayment: IncompletePaymentEntity):
             Resource<Int>

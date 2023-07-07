@@ -32,6 +32,9 @@ class ProductsRepositoryImpl(
     override suspend fun getProduct(id: Int): Resource<ProductEntity> =
         localDatasource.getProduct(id)
 
+    override suspend fun getProductByRemoteId(remoteId: Long): Resource<ProductEntity> =
+        localDatasource.getProduct(remoteId)
+
 
     override fun getProducts(): Flow<Resource<List<ProductEntity>>> = flow {
         localDatasource.getProducts().onEach { emit(it) }.collect()
@@ -43,20 +46,18 @@ class ProductsRepositoryImpl(
 
     override suspend fun fetchProducts(
         storeId: Int,
-        clientId: Int,
-        featureName: String,
-        filter: String,
-        loadDiscounts: Boolean
+        companyId: Int,
+        filter: String
     ):
             Resource<Int> {
-        val response = remoteDatasource.getProducts(storeId, clientId, featureName, filter, loadDiscounts)
+        val response = remoteDatasource.getProducts(storeId,companyId, filter)
         if (response is Resource.Success) {
             response.data?.let {
                 insertProducts(it)
             }
             return Resource.Success()
         }
-        return Resource.Error(resId = response.resId)
+        return Resource.Error(resId = response.resId, message = response.message)
     }
 
     override suspend fun updateProduct(product: Product): Resource<Int> =
@@ -79,10 +80,10 @@ class ProductsRepositoryImpl(
             product.description?: "",
             product.image,
             product.price,
-            product.discounts?: 0F,
             product.IEPS?: 0F,
             product.IVA?: 0F,
             product.units?:0,
+            System.currentTimeMillis(),
             actionPending
         )
     }

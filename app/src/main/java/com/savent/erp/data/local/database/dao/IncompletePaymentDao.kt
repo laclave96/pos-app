@@ -15,8 +15,8 @@ interface IncompletePaymentDao {
     @Query("SELECT * FROM incomplete_payments")
     fun getIncompletePayments(): Flow<List<IncompletePaymentEntity>?>
 
-    @Query("SELECT * FROM incomplete_payments WHERE id =:id")
-    fun getIncompletePayment(id: Int): IncompletePaymentEntity?
+    @Query("SELECT * FROM incomplete_payments WHERE sale_id =:saleId")
+    fun getIncompletePayment(saleId: Int): IncompletePaymentEntity?
 
     @Update(onConflict = OnConflictStrategy.REPLACE)
     suspend fun updateIncompletePayment(incompletePayment: IncompletePaymentEntity): Int

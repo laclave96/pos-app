@@ -11,11 +11,16 @@ class IncompletePaymentsRemoteDatasourceImpl(
     private val incompletePaymentApiService: IncompletePaymentApiService
 ) : IncompletePaymentsRemoteDatasource {
 
-    override suspend fun getIncompletePayments(businessId: Int, storeId: Int, featureName: String):
+    override suspend fun getIncompletePayments(businessId: Int, storeId: Int, companyId: Int):
             Resource<List<IncompletePayment>> {
         try {
             val response =
-                incompletePaymentApiService.getIncompletePayments(businessId, storeId, null, featureName)
+                incompletePaymentApiService.getIncompletePayments(
+                    businessId,
+                    storeId,
+                    null,
+                    companyId
+                )
             //Log.d("log_",response.toString())
             //Log.d("log_",Gson().toJson(response.body()))
             if (response.isSuccessful)
@@ -23,7 +28,7 @@ class IncompletePaymentsRemoteDatasourceImpl(
             return Resource.Error(resId = R.string.get_incomplete_payments_error)
         } catch (e: Exception) {
             //Log.d("log_",e.toString())
-            return Resource.Error(message = "Error al conectar")
+            return Resource.Error(resId = R.string.sync_input_error, message = "Error al conectar")
         }
     }
 

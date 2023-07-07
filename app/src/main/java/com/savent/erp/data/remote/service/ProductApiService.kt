@@ -17,10 +17,8 @@ interface ProductApiService {
     @GET(AppConstants.PRODUCTS_API_PATH)
     suspend fun getProducts(
         @Query("storeId") storeId: Int,
-        @Query("clientId") clientId: Int,
-        @Query("featureName") featureName: String,
-        @Query("filter") filter: String,
-        @Query("loadDiscounts") loadDiscounts: Boolean
+        @Query("companyId") companyId: Int,
+        @Query("filter") filter: String
     ): Response<List<Product>>
 
     @PUT(AppConstants.PRODUCTS_API_PATH)

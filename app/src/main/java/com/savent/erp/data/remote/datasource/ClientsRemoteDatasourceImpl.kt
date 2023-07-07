@@ -14,21 +14,21 @@ class ClientsRemoteDatasourceImpl(
         sellerId: Int,
         storeId: Int,
         client: Client,
-        featureName: String
+        companyId: Int
     ): Resource<Int> {
         try {
+            Log.d("log_",  Gson().toJson(client))
             val response = clientsApiService.insertClient(
                 sellerId,
                 storeId,
                 Gson().toJson(client),
-                featureName
+                companyId
             )
-            //Log.d("log_",response.toString()+response.errorBody().toString())
+            Log.d("log_",response.toString()+response.errorBody().toString())
             if (response.isSuccessful)
                 return Resource.Success(response.body())
             return Resource.Error(resId = R.string.add_client_error)
         } catch (e: Exception) {
-            //Log.d("log_",e.toString())
             return Resource.Error(message = "Error al conectar")
         }
 
@@ -37,11 +37,11 @@ class ClientsRemoteDatasourceImpl(
     override suspend fun getClients(
         sellerId: Int,
         storeId: Int?,
-        featureName: String,
+        companyId: Int,
         category: String
     ): Resource<List<Client>> {
         try {
-            val response = clientsApiService.getClients(sellerId, storeId, featureName, category)
+            val response = clientsApiService.getClients(sellerId, storeId, companyId, category)
             //Log.d("log_",response.toString())
             //Log.d("log_",Gson().toJson(response.body()))
             if (response.isSuccessful)
@@ -49,14 +49,24 @@ class ClientsRemoteDatasourceImpl(
             return Resource.Error(resId = R.string.get_clients_error)
         } catch (e: Exception) {
             //Log.d("log_",e.toString())
-            return Resource.Error(message = "Error al conectar")
+            return Resource.Error(resId = R.string.sync_input_error, message = "Error al conectar")
         }
 
     }
 
-    override suspend fun updateClient(sellerId: Int, client: Client): Resource<Int> {
+    override suspend fun updateClient(
+        sellerId: Int,
+        storeId: Int,
+        client: Client,
+        companyId: Int
+    ): Resource<Int> {
         try {
-            val response = clientsApiService.updateClient(sellerId, client)
+            val response = clientsApiService.updateClient(
+                sellerId,
+                storeId,
+                Gson().toJson(client),
+                companyId
+            )
             if (response.isSuccessful)
                 return Resource.Success(response.body())
             return Resource.Error(resId = R.string.update_client_error)

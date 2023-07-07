@@ -21,4 +21,24 @@ class Converters {
     @TypeConverter
     fun fromSelectedProducts(selectedProducts: HashMap<Int,Int>): String =
         Gson().toJson(selectedProducts)
+
+    @TypeConverter
+    fun toDateTimeObj(value: String): DateTimeObj =
+        Gson().fromJson(value, object : TypeToken<DateTimeObj>() {}.type)
+
+    @TypeConverter
+    fun fromDateTimeObj(dateTimeObj: DateTimeObj): String = Gson().toJson(dateTimeObj)
+
+
+    /*@TypeConverter
+    fun toPendingRemoteAction(value: String): PendingRemoteAction =
+       enumValueOf(value)
+
+    @TypeConverter
+    fun fromPendingRemoteAction(value: PendingRemoteAction): String = value.name*/
+
+
+
+
+
 }

@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface DebtPaymentLocalDatasource {
 
+    suspend fun insertDebtPayments(debtPayments: List<DebtPaymentEntity>): Resource<Int>
+
     suspend fun insertDebtPayment(debtPayment: DebtPaymentEntity): Resource<Int>
 
     fun getDebtPayments(): Flow<Resource<List<DebtPaymentEntity>>>

@@ -21,6 +21,7 @@ import com.savent.erp.domain.repository.*
 import com.savent.erp.domain.usecase.*
 import com.savent.erp.presentation.viewmodel.*
 import com.savent.erp.data.remote.model.LoginCredentials
+import com.savent.erp.utils.Mappers
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
@@ -41,6 +42,10 @@ private val Context.datastore: DataStore<Preferences> by preferencesDataStore(Ap
 val baseModule = module {
 
     single { Gson() }
+
+    single {
+        NetworkConnectivityObserver(androidContext())
+    }
 
     /*single<OkHttpClient> {
 
@@ -226,11 +231,7 @@ val debtPaymentsDataModule = module {
     }
 
     single<DebtPaymentRepository> {
-        DebtPaymentRepositoryImpl(get())
-    }
-
-    single {
-        RemoteDebtPaymentSyncFromLocalUseCase(get(), get())
+        DebtPaymentRepositoryImpl(get(), get())
     }
 
 }
@@ -291,6 +292,32 @@ val productsDataModule = module {
 
 }
 
+val discountsDataModule = module {
+
+    includes(baseModule)
+
+    single {
+        get<AppDatabase>().discountDao()
+    }
+
+    single<DiscountsLocalDatasource> {
+        DiscountsLocalDatasourceImpl(get())
+    }
+
+    single<DiscountApiService> {
+        get<Retrofit>().create(DiscountApiService::class.java)
+    }
+
+    single<DiscountsRemoteDatasource> {
+        DiscountsRemoteDatasourceImpl(get())
+    }
+
+    single<DiscountsRepository> {
+        DiscountsRepositoryImpl(get(), get())
+    }
+
+}
+
 val clientsDataModule = module {
 
     includes(baseModule)
@@ -317,6 +344,132 @@ val clientsDataModule = module {
 
     single<ClientsRepository> {
         ClientsRepositoryImpl(get(), get())
+    }
+
+}
+
+val purchasesDataModule = module {
+    includes(baseModule)
+
+    single {
+        get<AppDatabase>().purchaseDao()
+    }
+
+    single<PurchaseLocalDatasource> {
+        PurchaseLocalDatasourceImpl(get())
+    }
+
+    single<PurchaseApiService> {
+        get<Retrofit>().create(PurchaseApiService::class.java)
+    }
+
+    single<PurchaseRemoteDatasource> {
+        PurchaseRemoteDatasourceImpl(get())
+    }
+
+    single<PurchasesRepository> {
+        PurchaseRepositoryImpl(get(), get())
+    }
+}
+
+val movementsDataModule = module {
+
+    includes(baseModule)
+
+    single {
+        get<AppDatabase>().movementDao()
+    }
+
+    single<MovementsLocalDatasource> {
+        MovementsLocalDatasourceImpl(get())
+    }
+
+    single<MovementApiService> {
+        get<Retrofit>().create(MovementApiService::class.java)
+    }
+
+    single<MovementsRemoteDatasource> {
+        MovementsRemoteDatasourceImpl(get())
+    }
+
+    single<MovementsRepository> {
+        MovementsRepositoryImpl(get(), get(), Mappers.Repos.movement)
+    }
+
+}
+
+val movementsReasonsDataModule = module {
+
+    includes(baseModule)
+
+    single {
+        get<AppDatabase>().movementReasonDao()
+    }
+
+    single<MovementReasonsLocalDatasource> {
+        MovementReasonsLocalDatasourceImpl(get())
+    }
+
+    single<MovementReasonApiService> {
+        get<Retrofit>().create(MovementReasonApiService::class.java)
+    }
+
+    single<MovementReasonsRemoteDatasource> {
+        MovementReasonsRemoteDatasourceImpl(get())
+    }
+
+    single<MovementReasonsRepository> {
+        MovementReasonsRepositoryImpl(get(), get())
+    }
+
+}
+
+val employeesDataModule = module {
+    includes(baseModule)
+
+    single {
+        get<AppDatabase>().employeeDao()
+    }
+
+    single<EmployeesLocalDatasource> {
+        EmployeesLocalDatasourceImpl(get())
+    }
+
+    single<EmployeeApiService> {
+        get<Retrofit>().create(EmployeeApiService::class.java)
+    }
+
+    single<EmployeesRemoteDataSource> {
+        EmployeesRemoteDatasourceImpl(get())
+    }
+
+    single<EmployeesRepository> {
+        EmployeesRepositoryImpl(get(), get())
+    }
+
+}
+
+val providersDataModule = module {
+    includes(baseModule)
+
+    single {
+        get<AppDatabase>().providerDao()
+    }
+
+    single<ProvidersLocalDatasource> {
+        ProvidersLocalDatasourceImpl(get())
+    }
+
+    single<ProviderApiService> {
+        get<Retrofit>().create(ProviderApiService::class.java)
+    }
+
+    single<ProvidersRemoteDatasource> {
+        ProvidersRemoteDatasourceImpl(get())
+    }
+
+    single<ProvidersRepository> {
+        ProvidersRepositoryImpl(get(), get())
     }
 
 }
@@ -355,8 +508,14 @@ val businessDataModule = module {
         salesDataModule,
         clientsDataModule,
         productsDataModule,
+        discountsDataModule,
         incompletePaymentsDataModule,
         debtPaymentsDataModule,
+        purchasesDataModule,
+        movementsDataModule,
+        movementsReasonsDataModule,
+        employeesDataModule,
+        providersDataModule,
         statsDataModule
     )
 
@@ -369,7 +528,10 @@ val businessDataModule = module {
     }
 
     single<BusinessRepository> {
-        BusinessRepositoryImpl(get(), get(), get(), get(), get())
+        BusinessRepositoryImpl(
+            get(),
+            get()
+        )
     }
 
 }
@@ -392,8 +554,56 @@ val credentialsDataModule = module {
     }
 }
 
+val companiesDataModule = module {
+    includes(baseModule)
+
+    single {
+        get<AppDatabase>().companyDao()
+    }
+
+    single<CompaniesLocalDatasource> {
+        CompaniesLocalDatasourceImpl(get())
+    }
+
+    single<CompanyApiService> {
+        get<Retrofit>().create(CompanyApiService::class.java)
+    }
+
+    single<CompaniesRemoteDatasource> {
+        CompaniesRemoteDatasourceImpl(get())
+    }
+
+    single<CompaniesRepository> {
+        CompaniesRepositoryImpl(get(), get(), Mappers.Repos.company)
+    }
+
+}
+
+val storesDataModule = module {
+
+    single {
+        get<AppDatabase>().storeDao()
+    }
+
+    single<StoresLocalDatasource> {
+        StoresLocalDatasourceImpl(get())
+    }
+
+    single<StoreApiService> {
+        get<Retrofit>().create(StoreApiService::class.java)
+    }
+
+    single<StoresRemoteDatasource> {
+        StoresRemoteDatasourceImpl(get())
+    }
+
+    single<StoresRepository> {
+        StoresRepositoryImpl(get(), get(), Mappers.Repos.store)
+    }
+}
+
 val dataModule = module {
-    includes(businessDataModule, credentialsDataModule)
+    includes(businessDataModule, credentialsDataModule, companiesDataModule, storesDataModule)
 }
 
 val openingModule = module {
@@ -416,13 +626,48 @@ val loginModule = module {
         LoginUseCase(get(), get())
     }
 
-    viewModel { LoginViewModel(androidApplication(), get(), get()) }
+    viewModel { LoginViewModel(androidApplication(), get(), get(), get(), get()) }
 
+}
+
+val remoteSyncModule = module {
+
+    single {
+        GetSalesPendingToSendUseCase(get())
+    }
+
+    single {
+        GetClientsPendingToSendUseCase(get())
+    }
+
+    single {
+        GetDebtPaymentsPendingToSendUseCase(get())
+    }
+
+    single {
+        IsDataPendingSyncUseCase(get(), get(), get())
+    }
+
+    single {
+        RemoteSaleSyncFromLocalUseCase()
+    }
+
+    single {
+        RemoteClientSyncFromLocalUseCase()
+    }
+
+    single {
+        RemoteDebtPaymentSyncFromLocalUseCase()
+    }
+
+    single {
+        RemoteDataSyncFromLocalUseCase()
+    }
 }
 
 val dashboardModule = module {
 
-    includes(dataModule)
+    includes(dataModule, remoteSyncModule)
 
     single {
         ReloadBusinessBasicsDataUseCase(get())
@@ -432,20 +677,169 @@ val dashboardModule = module {
         ReloadStatsDataUseCase(get())
     }
 
+    viewModel { DashboardViewModel(androidApplication(), get(), get(), get()) }
+
+}
+
+val clientsModule = module {
+
+    includes(dataModule, remoteSyncModule)
+
     single {
-        GetBusinessBasicsUseCase(get())
+        GetClientListUseCase(get(), get())
     }
 
-    viewModel { DashboardViewModel(androidApplication(), get(), get(), get()) }
+    single {
+        ReloadClientsUseCase(get())
+    }
+
+    single {
+        RemoveAllClientsUseCase(get())
+    }
+
+    single {
+        SaveNewClientUseCase(get())
+    }
+
+    single {
+        AddClientToSaleUseCase(get(), get())
+    }
+
+    single {
+        ValidateClientUseCase()
+    }
+
+    viewModel {
+        ClientsViewModel(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get()
+        )
+    }
+
+}
+
+val mapModule = module {
+    includes(clientsDataModule)
+
+    single {
+        GetMapClientItems(get())
+    }
+
+    viewModel { MapViewModel(get()) }
+}
+
+val productsModule = module {
+
+    includes(dataModule, remoteSyncModule)
+
+    single {
+        GetProductListUseCase(get(), get())
+    }
+
+    single {
+        ReloadProductsUseCase(get())
+    }
+
+    single {
+        RemoveAllProductsUseCase(get())
+    }
+
+    single {
+        ComputePendingSalePriceUseCase(get(), get(), get(), get())
+    }
+
+    single {
+        AddProductToSaleUseCase(get(), get())
+    }
+
+    single {
+        RemoveProductFromSaleUseCase(get(), get())
+    }
+
+    single {
+        ChangeUnitsOfSelectedProductsUseCase(get(), get())
+    }
+
+    viewModel {
+        ProductsViewModel(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get()
+        )
+    }
+
+}
+
+val debtsModule = module {
+    includes(debtPaymentsDataModule, incompletePaymentsDataModule, clientsModule)
+
+    single {
+        GetClientListWithDebts(get(), get(), get())
+    }
+
+    single {
+        GetIncompletePaymentsUseCase(get())
+    }
+
+    single {
+        GetDebtPaymentsOfDayUseCase(get(), get())
+    }
+
+    single {
+        GetDebtPaymentsBalanceUseCase(get())
+    }
+
+    single {
+        ReloadIncompletePaymentsUseCase(get())
+    }
+
+    single {
+        PayDebtUseCase(get(), get())
+    }
+
+    viewModel {
+        DebtsViewModel(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+
+            )
+    }
 
 }
 
 val saleModule = module {
 
-    includes(dataModule)
+    includes(dataModule, debtsModule)
 
     viewModel { MainViewModel(androidApplication()) }
-
 
     single {
         CreatePendingSaleUseCase(get())
@@ -476,55 +870,35 @@ val saleModule = module {
     }
 
     single {
+        GetReceiptToSend(get(), get(), get(), get())
+    }
+
+    single {
+        SaveReceiptFileUseCase()
+    }
+
+    single {
+        GetReceiptToPrint(get(), get(), get(), get())
+    }
+
+    single {
         GetSalesOfDayUseCase(get())
     }
 
     single {
-        ComputeBalanceUseCase(get())
+        GetCashBalanceUseCase(get())
     }
 
     single {
-        RemoteSaleSyncFromLocalUseCase(get(), get(), get(), get())
-    }
-
-    viewModel { SalesViewModel(get(), get()) }
-}
-
-val clientsModule = module {
-
-    includes(saleModule)
-
-    single {
-        GetClientListUseCase(get(), get())
+        GetSalesBalanceUseCase(get())
     }
 
     single {
-        ReloadClientsUseCase(get())
-    }
-
-    single {
-        RemoveAllClientsUseCase(get())
-    }
-
-    single {
-        CreateNewClientUseCase(get())
-    }
-
-    single {
-        AddClientToSaleUseCase(get(), get())
-    }
-
-    single {
-        ValidateClientUseCase()
-    }
-
-    single {
-        RemoteClientSyncFromLocalUseCase(get(), get())
+        ReloadSalesUseCase(get())
     }
 
     viewModel {
-        ClientsViewModel(
-            get(),
+        SalesViewModel(
             get(),
             get(),
             get(),
@@ -537,61 +911,6 @@ val clientsModule = module {
             get()
         )
     }
-
-}
-
-val productsModule = module {
-
-    includes(dataModule)
-
-    single {
-        GetProductListUseCase(get(), get())
-    }
-
-    single {
-        ReloadProductsUseCase(get())
-    }
-
-    single {
-        RemoveAllProductsUseCase(get())
-    }
-
-    single {
-        ComputePendingSalePriceUseCase(get(), get())
-    }
-
-    single {
-        AddProductToSaleUseCase(get(), get())
-    }
-
-    single {
-        RemoveProductFromSaleUseCase(get(), get())
-    }
-
-    single {
-        ChangeUnitsOfSelectedProductsUseCase(get(), get())
-    }
-
-    single {
-        RemoteProductSyncFromLocalUseCase(get(), get())
-    }
-
-    viewModel {
-        ProductsViewModel(
-            get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get(),
-            get()
-        )
-    }
-
 }
 
 val checkoutModule = module {
@@ -611,11 +930,7 @@ val checkoutModule = module {
     }
 
     single {
-        GetReceiptToSend(get(), get(), get(), get())
-    }
-
-    single {
-        GetReceiptToPrint(get(), get(), get())
+        VerifyingRemainingCreditLimit(get(), get(), get())
     }
 
     viewModel {
@@ -631,45 +946,103 @@ val checkoutModule = module {
             get(),
             get(),
             get(),
-            get()
+            get(),
         )
     }
 
 }
 
-val debtsModule = module {
-    includes(debtPaymentsDataModule, incompletePaymentsDataModule, clientsModule)
+val movementsModule = module {
+
+    includes(dataModule)
 
     single {
-        GetClientListWithDebts(get(), get(), get())
+        GetMovementsOfDayUseCase(get(), get(), get(), get(), get())
     }
 
     single {
-        GetIncompletePaymentsUseCase(get())
+        GetEmployeesUseCase(get(), Mappers.Ui.employee)
     }
 
     single {
-        ReloadIncompletePaymentsUseCase(get())
+        GetMovementReasonsUseCase(get(), Mappers.Ui.reason)
     }
 
     single {
-        PayDebtUseCase(get(),get())
+        GetProvidersUseCase(get(), Mappers.Ui.provider)
     }
 
-    viewModel { DebtsViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single {
+        GetAvailablePurchasesUseCase(get(), get(), get())
+    }
 
+    single {
+        AttachPurchaseToMovementUseCase(get(), get())
+    }
+
+    single {
+        ValidateAndPrepareMovementUseCase(get())
+    }
+
+    single {
+        GetAvailableProductsFromPurchaseUseCase(get(), get())
+    }
+
+    single {
+        GetAllProductsUseCase(get())
+    }
+
+    single {
+        SaveMovementUseCase(get(), get(), get(), get())
+    }
+
+    single {
+        ReloadEmployeesUseCase(get())
+    }
+
+    single {
+        ReloadProvidersUseCase(get())
+    }
+
+    viewModel {
+        MovementsViewModel(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+            get()
+        )
+    }
 }
 
 val appModule = module {
-    includes(openingModule, loginModule, dashboardModule, checkoutModule, debtsModule)
+
+    includes(
+        openingModule,
+        loginModule,
+        dashboardModule,
+        checkoutModule,
+        debtsModule,
+        mapModule,
+        movementsModule
+    )
 
     /*single<ConnectivityObserver> {
         NetworkConnectivityObserver(androidContext())
     }*/
 
-    single {
-        RemoteDataSyncFromLocalUseCase(get(), get(), get(), get(), get())
-    }
 }
 
 

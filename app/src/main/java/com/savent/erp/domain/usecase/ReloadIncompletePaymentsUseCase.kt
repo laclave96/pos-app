@@ -6,6 +6,6 @@ import com.savent.erp.utils.Resource
 class ReloadIncompletePaymentsUseCase(
     private val incompletePaymentRepository: IncompletePaymentRepository
 ) {
-    suspend operator fun invoke(businessId: Int, storeId: Int, featureName: String): Resource<Int> =
-        incompletePaymentRepository.fetchIncompletePayments(businessId, storeId, featureName)
+    suspend operator fun invoke(businessId: Int, storeId: Int, companyId: Int): Resource<Int> =
+        incompletePaymentRepository.fetchIncompletePayments(businessId, storeId, companyId)
 }

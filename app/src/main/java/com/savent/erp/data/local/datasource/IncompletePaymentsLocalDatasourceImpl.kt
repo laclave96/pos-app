@@ -42,8 +42,8 @@ class IncompletePaymentsLocalDatasourceImpl(private val incompletePaymentDao: In
         }.collect()
     }
 
-    override suspend fun getIncompletePayment(id: Int): Resource<IncompletePaymentEntity> {
-        incompletePaymentDao.getIncompletePayment(id)?.let { return Resource.Success(it) }
+    override suspend fun getIncompletePayment(saleId: Int): Resource<IncompletePaymentEntity> {
+        incompletePaymentDao.getIncompletePayment(saleId)?.let { return Resource.Success(it) }
         return Resource.Error(resId = R.string.get_incomplete_payments_error)
     }
 

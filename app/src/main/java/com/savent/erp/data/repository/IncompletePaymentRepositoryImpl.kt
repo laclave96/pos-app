@@ -1,7 +1,5 @@
 package com.savent.erp.data.repository
 
-import android.util.Log
-import com.google.gson.Gson
 import com.savent.erp.data.local.datasource.IncompletePaymentsLocalDataSource
 import com.savent.erp.data.local.model.IncompletePaymentEntity
 import com.savent.erp.data.remote.datasource.IncompletePaymentsRemoteDatasource
@@ -9,6 +7,7 @@ import com.savent.erp.data.remote.model.IncompletePayment
 import com.savent.erp.domain.repository.IncompletePaymentRepository
 import com.savent.erp.utils.PendingRemoteAction
 import com.savent.erp.utils.Resource
+import com.savent.erp.utils.toLong
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -33,8 +32,8 @@ class IncompletePaymentRepositoryImpl(
         localDataSource.getIncompletePayments().onEach { emit(it) }.collect()
     }
 
-    override suspend fun getIncompletePayment(id: Int): Resource<IncompletePaymentEntity> =
-        localDataSource.getIncompletePayment(id)
+    override suspend fun getIncompletePayment(saleId: Int): Resource<IncompletePaymentEntity> =
+        localDataSource.getIncompletePayment(saleId)
 
 
     override suspend fun updateIncompletePayment(incompletePayment: IncompletePaymentEntity):
@@ -44,16 +43,16 @@ class IncompletePaymentRepositoryImpl(
     override suspend fun fetchIncompletePayments(
         businessId: Int,
         storeId: Int,
-        featureName: String
+        companyId: Int
     ): Resource<Int> {
-        val response = remoteDatasource.getIncompletePayments(businessId, storeId, featureName)
+        val response = remoteDatasource.getIncompletePayments(businessId, storeId, companyId)
         if (response is Resource.Success) {
             response.data?.let {
                 insertIncompletePayments(it)
             }
             return Resource.Success()
         }
-        return Resource.Error(resId = response.resId)
+        return Resource.Error(resId = response.resId, message = response.message)
     }
 
     private fun mapToEntity(
@@ -63,8 +62,7 @@ class IncompletePaymentRepositoryImpl(
             0,
             incompletePayment.saleId,
             incompletePayment.clientId,
-            SimpleDateFormat("yyyy-MM-dd HH:mm")
-                .parse("${incompletePayment.dateTimestamp.date} ${incompletePayment.dateTimestamp.hour}").time,
+            incompletePayment.dateTimestamp.toLong(),
             incompletePayment.productsUnits,
             incompletePayment.subtotal,
             incompletePayment.discounts,

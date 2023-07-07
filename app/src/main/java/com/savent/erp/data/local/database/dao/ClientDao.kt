@@ -31,6 +31,9 @@ interface ClientDao {
     @Query("SELECT * FROM clients WHERE id =:id")
     fun getClient(id: Int): ClientEntity?
 
+    @Query("SELECT * FROM clients WHERE remote_id =:remoteId")
+    fun getClientByRemoteId(remoteId: Int): ClientEntity?
+
     @Query("SELECT * FROM clients")
     fun getClients(): Flow<List<ClientEntity>?>
 

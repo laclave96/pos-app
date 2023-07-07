@@ -13,16 +13,15 @@ interface SaleApiService {
         @Query("sellerId") sellerId: Int,
         @Query("storeId") storeId: Int,
         @Query("sale") sale: String,
-        @Query("featureName") featureName: String
+        @Query("companyId") companyId: Int
     ): Response<Int>
 
     @GET(AppConstants.SALES_API_PATH)
     suspend fun getSales(
         @Query("businessId") businessId: Int,
-        @Query("sellerId") sellerId: Int,
         @Query("storeId") storeId: Int,
         @Query("date") date: String,
-        @Query("featureName") featureName: String
+        @Query("companyId") companyId: Int
     ): Response<List<Sale>>
 
 }

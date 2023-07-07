@@ -72,7 +72,12 @@ class PendingSaleLocalDatasourceImpl(
     override suspend fun decreaseExtraDiscountPercent(): Resource<Int> {
         val pendingSale = dataObjectStorage.getData().first().data
         pendingSale?.let {
-            return updateExtraDiscountPercent(it.extraDiscountPercent.dec())
+            it.extraDiscountPercent.dec().let { it1->
+                return if (it1 > 0)
+                    updateExtraDiscountPercent(it1)
+                else updateExtraDiscountPercent(0)
+            }
+
         }
         return Resource.Error()
     }
